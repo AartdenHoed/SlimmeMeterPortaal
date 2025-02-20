@@ -1,0 +1,161 @@
+body {
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    height: 100%;
+    width: 100% ;
+    background-color: lightyellow;
+}
+h2, h3 {
+    font-weight: bold;
+}
+.wrapper {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    
+}
+.header {
+    width: 100%;
+    height: 5%;
+    box-sizing: border-box;
+    float: left;
+    margin: 0;
+    background-color: darkblue;
+    background-size: cover;
+    
+}
+.title {
+    text-align: center;
+    font-size: x-large;
+    font-weight: bold;
+    height: 90%;
+    width: 100%;
+    color: yellow;
+}
+.version {
+    color: white;
+    text-align: center;
+    vertical-align: central;
+}
+.content {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;  
+    float: left; 
+    margin: 0;
+    padding-top: 0.5%; 
+   
+ }
+.footer {
+    width: 100%;
+    height: 3%;
+    box-sizing: border-box; 
+    float: left;  
+    margin: 0;
+    padding: 0; 
+    
+}
+.leftcol {
+    width: 14%;
+    height: 89%;
+    box-sizing: border-box;
+    float: left;
+    margin-right: 0.5%;
+    margin-left: 0.5%;
+    margin-top: 0,5%;
+    padding-left: 0.5%;
+    top: 6%;
+    position: fixed;
+}
+.midcol {
+    width: 84%;
+    height: 89%;
+    box-sizing: border-box;
+    float: right;
+    margin: 0;
+    margin-top: 0,5%;
+    margin-right: 0.5%;
+    left: 15%;
+    top: 6%;
+    position: fixed;
+}
+#content {
+    border: 2px solid black;
+    border-radius: 12px;
+    box-shadow: 6px 6px 6px Black;
+    background-color: lightblue;
+    padding: 0;
+    overflow: auto;
+    
+}
+.controller {
+    margin: 1%;
+    height: 95%;
+    width: 98%;
+    overflow: inherit;
+}
+.cline {
+    background-color: lightgrey;
+    text-align: center;
+    width: 100%;
+    height: 3%;
+    margin: 0;
+    padding: 0;
+    bottom: 0;
+    position: fixed
+}
+.sy-dl {
+    overflow: hidden;
+    margin: 1%;
+}
+.sy-dd {
+    width: 70%;
+    float: left;
+}
+.sy-dt {
+    width: 25%;
+    float: left;
+}
+.sy-button {
+    color: black;
+    background-color: lightskyblue;
+    border-color: darkblue;
+    font-size: larger;
+    margin: 3%;
+    border-radius: 12px;
+}
+.sy-button:hover {
+    background-color: lightgreen;
+}
+.sy-button:disabled:hover {
+    background-color: red;
+}
+.sy-table {
+    background-color: lightblue;
+    margin-right: 3%;
+    width: 100%;
+}
+.sy-table th {
+    background-color: lightblue;
+    text-align: left;
+    padding-left: 25px;
+    white-space: nowrap;
+}
+.sy-table tr:nth-child(even) {
+    background-color: lightyellow;
+}
+.sy-table tr:nth-child(odd) {
+    background-color: lightgreen;
+}
+.sy-table td {
+    text-align: left;
+    padding-left: 25px;
+    white-space: nowrap;
+}
+.syuse {
+    background-color: yellow
+}
+

@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slimme Meter Portaal</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+</head>
+<body>
+    <div class="wrapper">
+        <div class="header">
+            <div class="title">
+                H o m e&nbsp;&nbsp;&nbsp;S l i m m e &nbsp;M e t e r&nbsp;&nbsp;P o r t a a l
+            </div>
+
+        </div>
+        <div class="content">
+            <div class="leftcol" id="content">
+                &nbsp;
+            </div>
+            <div class="midcol" id="content">
+
+                @RenderBody()
+
+            </div>
+
+        </div>
+        <div class="footer">
+            &nbsp;
+            <footer class="cline">
+                &copy; @DateTime.Now.Year - AdH.Code Application - Version: 1.0
+            </footer>
+        </div>
+
+    </div>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+    
+</body>
+</html>

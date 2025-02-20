@@ -1,0 +1,175 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="SlimmeMeterPortaalModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="Device">
+          <Key>
+            <PropertyRef Name="DeviceID" />
+          </Key>
+          <Property Name="DeviceID" Type="char" MaxLength="24" Nullable="false" />
+          <Property Name="DeviceType" Type="char" MaxLength="12" Nullable="false" />
+          <Property Name="Startdate" Type="datetime" Nullable="false" />
+          <Property Name="Enddate" Type="datetime" />
+        </EntityType>
+        <EntityType Name="Measurement">
+          <Key>
+            <PropertyRef Name="DeviceID" />
+            <PropertyRef Name="LeveringUur" />
+            <PropertyRef Name="LeveringDag" />
+            <PropertyRef Name="LeveringMaand" />
+            <PropertyRef Name="LeveringJaar" />
+          </Key>
+          <Property Name="DeviceID" Type="char" MaxLength="24" Nullable="false" />
+          <Property Name="LeveringLaag" Type="decimal" Precision="10" Scale="2" />
+          <Property Name="LeveringNormaal" Type="decimal" Precision="10" Scale="2" />
+          <Property Name="LeveringTotaal" Type="decimal" Precision="10" Scale="2" Nullable="false" />
+          <Property Name="Meterstand" Type="decimal" Precision="10" Scale="2" Nullable="false" />
+          <Property Name="Temperatuur" Type="decimal" Precision="5" Scale="2" />
+          <Property Name="LeveringDatum" Type="datetime" Nullable="false" />
+          <Property Name="UTC_Offset" Type="int" Nullable="false" />
+          <Property Name="LeveringUur" Type="int" Nullable="false" />
+          <Property Name="LeveringDag" Type="int" Nullable="false" />
+          <Property Name="LeveringMaand" Type="int" Nullable="false" />
+          <Property Name="LeveringJaar" Type="int" Nullable="false" />
+          <Property Name="Aantalmetingen" Type="int" Nullable="false" />
+        </EntityType>
+        <Association Name="FK_Measurement_Device">
+          <End Role="Device" Type="Self.Device" Multiplicity="1" />
+          <End Role="Measurement" Type="Self.Measurement" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Device">
+              <PropertyRef Name="DeviceID" />
+            </Principal>
+            <Dependent Role="Measurement">
+              <PropertyRef Name="DeviceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="SlimmeMeterPortaalModelStoreContainer">
+          <EntitySet Name="Device" EntityType="Self.Device" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Measurement" EntityType="Self.Measurement" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_Measurement_Device" Association="Self.FK_Measurement_Device">
+            <End Role="Device" EntitySet="Device" />
+            <End Role="Measurement" EntitySet="Measurement" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="SlimmeMeterPortaalModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="Device">
+          <Key>
+            <PropertyRef Name="DeviceID" />
+          </Key>
+          <Property Name="DeviceID" Type="String" MaxLength="24" FixedLength="true" Unicode="false" Nullable="false" />
+          <Property Name="DeviceType" Type="String" MaxLength="12" FixedLength="true" Unicode="false" Nullable="false" />
+          <Property Name="Startdate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="Enddate" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Measurements" Relationship="Self.FK_Measurement_Device" FromRole="Device" ToRole="Measurement" />
+        </EntityType>
+        <EntityType Name="Measurement">
+          <Key>
+            <PropertyRef Name="DeviceID" />
+            <PropertyRef Name="LeveringUur" />
+            <PropertyRef Name="LeveringDag" />
+            <PropertyRef Name="LeveringMaand" />
+            <PropertyRef Name="LeveringJaar" />
+          </Key>
+          <Property Name="DeviceID" Type="String" MaxLength="24" FixedLength="true" Unicode="false" Nullable="false" />
+          <Property Name="LeveringLaag" Type="Decimal" Precision="10" Scale="2" />
+          <Property Name="LeveringNormaal" Type="Decimal" Precision="10" Scale="2" />
+          <Property Name="LeveringTotaal" Type="Decimal" Precision="10" Scale="2" Nullable="false" />
+          <Property Name="Meterstand" Type="Decimal" Precision="10" Scale="2" Nullable="false" />
+          <Property Name="Temperatuur" Type="Decimal" Precision="5" Scale="2" />
+          <Property Name="LeveringDatum" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="UTC_Offset" Type="Int32" Nullable="false" />
+          <Property Name="LeveringUur" Type="Int32" Nullable="false" />
+          <Property Name="LeveringDag" Type="Int32" Nullable="false" />
+          <Property Name="LeveringMaand" Type="Int32" Nullable="false" />
+          <Property Name="LeveringJaar" Type="Int32" Nullable="false" />
+          <Property Name="Aantalmetingen" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Device" Relationship="Self.FK_Measurement_Device" FromRole="Measurement" ToRole="Device" />
+        </EntityType>
+        <Association Name="FK_Measurement_Device">
+          <End Role="Device" Type="Self.Device" Multiplicity="1" />
+          <End Role="Measurement" Type="Self.Measurement" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Device">
+              <PropertyRef Name="DeviceID" />
+            </Principal>
+            <Dependent Role="Measurement">
+              <PropertyRef Name="DeviceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="SlimmeMeterPortaalEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="Devices" EntityType="Self.Device" />
+          <EntitySet Name="Measurements" EntityType="Self.Measurement" />
+          <AssociationSet Name="FK_Measurement_Device" Association="Self.FK_Measurement_Device">
+            <End Role="Device" EntitySet="Devices" />
+            <End Role="Measurement" EntitySet="Measurements" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="SlimmeMeterPortaalModelStoreContainer" CdmEntityContainer="SlimmeMeterPortaalEntities">
+          <EntitySetMapping Name="Devices">
+            <EntityTypeMapping TypeName="SlimmeMeterPortaalModel.Device">
+              <MappingFragment StoreEntitySet="Device">
+                <ScalarProperty Name="DeviceID" ColumnName="DeviceID" />
+                <ScalarProperty Name="DeviceType" ColumnName="DeviceType" />
+                <ScalarProperty Name="Startdate" ColumnName="Startdate" />
+                <ScalarProperty Name="Enddate" ColumnName="Enddate" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Measurements">
+            <EntityTypeMapping TypeName="SlimmeMeterPortaalModel.Measurement">
+              <MappingFragment StoreEntitySet="Measurement">
+                <ScalarProperty Name="DeviceID" ColumnName="DeviceID" />
+                <ScalarProperty Name="LeveringLaag" ColumnName="LeveringLaag" />
+                <ScalarProperty Name="LeveringNormaal" ColumnName="LeveringNormaal" />
+                <ScalarProperty Name="LeveringTotaal" ColumnName="LeveringTotaal" />
+                <ScalarProperty Name="Meterstand" ColumnName="Meterstand" />
+                <ScalarProperty Name="Temperatuur" ColumnName="Temperatuur" />
+                <ScalarProperty Name="LeveringDatum" ColumnName="LeveringDatum" />
+                <ScalarProperty Name="UTC_Offset" ColumnName="UTC_Offset" />
+                <ScalarProperty Name="LeveringUur" ColumnName="LeveringUur" />
+                <ScalarProperty Name="LeveringDag" ColumnName="LeveringDag" />
+                <ScalarProperty Name="LeveringMaand" ColumnName="LeveringMaand" />
+                <ScalarProperty Name="LeveringJaar" ColumnName="LeveringJaar" />
+                <ScalarProperty Name="Aantalmetingen" ColumnName="Aantalmetingen" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
