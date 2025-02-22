@@ -448,6 +448,7 @@ namespace SlimmeMeterPortaal.ViewModels
             if (p20dec >= a - 1M) { p20dec = aantal - 1; }
             int p20down = Convert.ToInt32(Math.Truncate(p20dec));
             int p20up = p20down + 1;
+            if (p20up > aantal-1) { p20up = aantal - 1; }
             decimal perc20 = sortedlist[p20down] + ((sortedlist[p20up] - sortedlist[p20down]) * (0.5M));
 
             decimal p40dec = 40M * (a - 1M) / 100M;
@@ -455,6 +456,7 @@ namespace SlimmeMeterPortaal.ViewModels
             if (p40dec >= a - 1M) { p40dec = aantal - 1; }
             int p40down = Convert.ToInt32(Math.Truncate(p40dec));
             int p40up = p40down + 1;
+            if (p40up > aantal-1) { p40up = aantal - 1; }
             decimal perc40 = sortedlist[p40down] + ((sortedlist[p40up] - sortedlist[p40down]) * (0.5M));
 
             decimal p60dec = 60M * (a - 1M) / 100M;
@@ -462,6 +464,7 @@ namespace SlimmeMeterPortaal.ViewModels
             if (p60dec >= a - 1M) { p60dec = aantal - 1; }
             int p60down = Convert.ToInt32(Math.Truncate(p60dec));
             int p60up = p60down + 1;
+            if (p60up > aantal-1) { p60up = aantal - 1; }
             decimal perc60 = sortedlist[p60down] + ((sortedlist[p60up] - sortedlist[p60down]) * (0.5M));
 
             decimal p80dec = 80M * (a - 1M) / 100M;
@@ -469,6 +472,7 @@ namespace SlimmeMeterPortaal.ViewModels
             if (p80dec >= a - 1M) { p80dec = aantal - 1; }
             int p80down = Convert.ToInt32(Math.Truncate(p80dec));
             int p80up = p80down + 1;
+            if (p80up > aantal - 1) { p80up = aantal - 1; }
             decimal perc80 = sortedlist[p80down] + ((sortedlist[p80up] - sortedlist[p80down]) * (0.5M));
 
             decimal perc100 = sortedlist[aantal - 1];

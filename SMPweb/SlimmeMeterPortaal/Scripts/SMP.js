@@ -48,7 +48,7 @@ function SetLevels() {
                 break;
         }
     }
-    alert("End");
+    //alert("End");
     return;
 }
     
