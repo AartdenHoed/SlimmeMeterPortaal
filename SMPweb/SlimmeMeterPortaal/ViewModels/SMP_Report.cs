@@ -10,6 +10,7 @@ using SlimmeMeterPortaal.ViewModels;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Ajax.Utilities;
+using System.Security.Cryptography.X509Certificates;
 
 namespace SlimmeMeterPortaal.ViewModels
 {
@@ -34,35 +35,11 @@ namespace SlimmeMeterPortaal.ViewModels
         
         public List<DeviceVM> Devicelijst = new List<DeviceVM>();
 
-        public string URL = "https://app.slimmemeterportal.nl/userapi/v1/connections";  
-        
-        public List<RPT_line> RPT_lines = new List<RPT_line>();
+        public string URL = "https://app.slimmemeterportal.nl/userapi/v1/connections";
 
-        public class RPT_line
-        {
-            public string N { get; set; }
-            public string Min { get; set; }
-            public string Mean { get; set; }
-            public string Max { get; set; }
-            public string Label { get; set; }
-            public string Dag1 { get; set; }
-            public string Dag2 { get; set; }
-            public string Dag3 { get; set; }
-            public string Dag4 { get; set; }
-            public string Dag5 { get; set; }
-            public string Dag6 { get; set; }
-            public string Dag7 { get; set; }
-            public int Level1 { get; set; }
-            public int Level2 { get; set; }
-            public int Level3 { get; set; }
-            public int Level4 { get; set; }
-            public int Level5 { get; set; }
-            public int Level6 { get; set; }
-            public int Level7 { get; set; }
-
-
-        }
-
+        public string IncludeStroom { get; set; }
+        public string IncludeGas { get; set; } 
+       
         public string APIkey
         {
             get
@@ -100,14 +77,13 @@ namespace SlimmeMeterPortaal.ViewModels
                 var responseString = await response.Content.ReadAsStringAsync();
                 // Parse the response body
                 var meterlist = JsonConvert.DeserializeObject<List<Meter>>(responseString);
-                                
+
                 foreach (Meter m in meterlist)
                 {
-                    DeviceVM dv = new DeviceVM
+                    DeviceVM dv = new DeviceVM (m.connection_type,this.IncludeGas, this.IncludeStroom)
                     {
                         Startdate = DateTime.ParseExact(m.start_date, "dd-MM-yyyy", null),
-                        DeviceID = m.meter_identifier,
-                        DeviceType = m.connection_type,
+                        DeviceID = m.meter_identifier
                     };
                     if (!string.IsNullOrEmpty(m.end_date))
                     {
@@ -116,8 +92,7 @@ namespace SlimmeMeterPortaal.ViewModels
                     else
                     {
                         dv.Enddate = DateTime.MaxValue;
-                    }
-                   
+                    }  
                     this.Devicelijst.Add(dv);
                 }
 
@@ -132,85 +107,97 @@ namespace SlimmeMeterPortaal.ViewModels
             response.Dispose();
             httpClient.Dispose();
             return "Ok";
-
-        } 
-
-        public void Create_Report(List<DagVerbruik> dagverbruik, Stats stats)
+        }
+        public async Task<string> GetUsage()
         {
-            // Titles
-            RPT_line line = new RPT_line
+            foreach (DeviceVM dvm in this.Devicelijst)
             {
-                N = "N",
-                Min = "Min",
-                Mean = "Mean",
-                Max = "Max",
-                Label = "Uur",
-                Dag1 = dagverbruik[0].VerbruiksDatum.ToString("yyyy-MM-dd"),
-                Dag2 = dagverbruik[1].VerbruiksDatum.ToString("yyyy-MM-dd"),
-                Dag3 = dagverbruik[2].VerbruiksDatum.ToString("yyyy-MM-dd"),
-                Dag4 = dagverbruik[3].VerbruiksDatum.ToString("yyyy-MM-dd"),
-                Dag5 = dagverbruik[4].VerbruiksDatum.ToString("yyyy-MM-dd"),
-                Dag6 = dagverbruik[5].VerbruiksDatum.ToString("yyyy-MM-dd"),
-                Dag7 = dagverbruik[6].VerbruiksDatum.ToString("yyyy-MM-dd")
-            };
-            this.RPT_lines.Add(line);
-
-            for (int i=0; i < 24; i++)
-            {
-                RPT_line lined = new RPT_line
+                if (!dvm.ReportDevice) { continue; }
+                DateTime reportDate = this.Rapportagedatum;
+                for (int i = -6; i <= 0; i++)
                 {
-                    N = stats.UurStatsList[i].AantalWaarnemingen.ToString("D2"),
-                    Min = stats.UurStatsList[i].StatNumbers.Min.ToString("N2"),
-                    Mean = stats.UurStatsList[i].StatNumbers.Mean.ToString("N2"),
-                    Max = stats.UurStatsList[i].StatNumbers.Max.ToString("N2"),
-                    Label = stats.UurStatsList[i].UurLabel,
-                    Dag1 = dagverbruik[0].UurLijst[i].UurVerbruik.ToString("N2"),
-                    Dag2 = dagverbruik[1].UurLijst[i].UurVerbruik.ToString("N2"),
-                    Dag3 = dagverbruik[2].UurLijst[i].UurVerbruik.ToString("N2"),
-                    Dag4 = dagverbruik[3].UurLijst[i].UurVerbruik.ToString("N2"),
-                    Dag5 = dagverbruik[4].UurLijst[i].UurVerbruik.ToString("N2"),
-                    Dag6 = dagverbruik[5].UurLijst[i].UurVerbruik.ToString("N2"),
-                    Dag7 = dagverbruik[6].UurLijst[i].UurVerbruik.ToString("N2"),
-                    Level1 = stats.GetLevel(dagverbruik[0].UurLijst[i].UurVerbruik, stats.UurStatsList[i].StatNumbers),
-                    Level2 = stats.GetLevel(dagverbruik[1].UurLijst[i].UurVerbruik, stats.UurStatsList[i].StatNumbers),
-                    Level3 = stats.GetLevel(dagverbruik[2].UurLijst[i].UurVerbruik, stats.UurStatsList[i].StatNumbers),
-                    Level4 = stats.GetLevel(dagverbruik[3].UurLijst[i].UurVerbruik, stats.UurStatsList[i].StatNumbers),
-                    Level5 = stats.GetLevel(dagverbruik[4].UurLijst[i].UurVerbruik, stats.UurStatsList[i].StatNumbers),
-                    Level6 = stats.GetLevel(dagverbruik[5].UurLijst[i].UurVerbruik, stats.UurStatsList[i].StatNumbers),
-                    Level7 = stats.GetLevel(dagverbruik[6].UurLijst[i].UurVerbruik, stats.UurStatsList[i].StatNumbers)
-                };
-                this.RPT_lines.Add(lined);
+                    DateTime entrydate = this.Rapportagedatum.AddDays(i);
+                    string datestring = entrydate.ToString("dd-MM-yyyy");
+                    Task<string> longRunningTask = dvm.GetSMPday(datestring, this.APIkey, "Usage");
+                    string result = await longRunningTask;
+
+                    if (result != "Ok")
+                    {
+                        throw new Exception("Function GetSMPday failed");
+
+                    }
+                }
 
             }
-            RPT_line linex = new RPT_line
-            {
-                N = stats.DagStats.AantalWaarnemingen.ToString("D2"),
-                Min = stats.DagStats.StatNumbers.Min.ToString("N2"),
-                Mean = stats.DagStats.StatNumbers.Mean.ToString("N2"),
-                Max = stats.DagStats.StatNumbers.Max.ToString("N2"),
-                Label = "Dag Totaal",
-                Dag1 = dagverbruik[0].TotaalperDag.ToString("N2"),
-                Dag2 = dagverbruik[1].TotaalperDag.ToString("N2"),
-                Dag3 = dagverbruik[2].TotaalperDag.ToString("N2"),
-                Dag4 = dagverbruik[3].TotaalperDag.ToString("N2"),
-                Dag5 = dagverbruik[4].TotaalperDag.ToString("N2"),
-                Dag6 = dagverbruik[5].TotaalperDag.ToString("N2"),
-                Dag7 = dagverbruik[6].TotaalperDag.ToString("N2"),
-                Level1 = stats.GetLevel(dagverbruik[0].TotaalperDag, stats.DagStats.StatNumbers),
-                Level2 = stats.GetLevel(dagverbruik[1].TotaalperDag, stats.DagStats.StatNumbers),
-                Level3 = stats.GetLevel(dagverbruik[2].TotaalperDag, stats.DagStats.StatNumbers),
-                Level4 = stats.GetLevel(dagverbruik[3].TotaalperDag, stats.DagStats.StatNumbers),
-                Level5 = stats.GetLevel(dagverbruik[4].TotaalperDag, stats.DagStats.StatNumbers),
-                Level6 = stats.GetLevel(dagverbruik[5].TotaalperDag, stats.DagStats.StatNumbers),
-                Level7 = stats.GetLevel(dagverbruik[6].TotaalperDag, stats.DagStats.StatNumbers)
-            };
-            this.RPT_lines.Add(linex);
+            return "Ok";
+        }
 
+        public async Task<string> GetReference()
+        {
+            foreach (DeviceVM dvm in this.Devicelijst)
+            {
+                if (!dvm.ReportDevice) { continue; }
+                for (int year = -1 * this.ReferentieJaren; year < 0; year++)
+                {
+                    DateTime refdate = this.Rapportagedatum.AddYears(year);
+                    int two = 2;
+                    int daymin = -1 * (this.ReferentieDagen - 1) / two;
+                    int daymax = daymin + this.ReferentieDagen;
+                    for (int day = daymin; day < daymax; day++)
+                    {
+                        DateTime entrydate = this.Rapportagedatum.AddYears(year).AddDays(day);
+                        string datestring = entrydate.ToString("dd-MM-yyyy");
+                        Task<string> longRunningTask = dvm.GetSMPday(datestring, this.APIkey,"Reference");
+                        string result = await longRunningTask;
+                        if (result != "Ok")
+                        {
+                            throw new Exception("Function GetSMPday failed");
+
+                        }
+                    }
+                }
+            }
+            return "Ok";
+        }
+
+        public void Consolidate()
+        {
+            foreach (DeviceVM dvm in this.Devicelijst)
+            {
+                if (!dvm.ReportDevice) { continue; }
+                switch (dvm.DeviceType)
+                {
+                    case "gas":
+                        dvm.GasConsolidatie("Usage");
+                        dvm.GasConsolidatie("Reference");
+                        break;
+                    case "elektriciteit":
+                        dvm.StroomConsolidatie("Usage");
+                        dvm.StroomConsolidatie("Reference");
+                        break;
+                }
+            }
             return;
         }
 
+        public void Statistics()
+        {
+            foreach (DeviceVM dvm in this.Devicelijst)                
+            {
+                if (!dvm.ReportDevice) { continue; }
+                dvm.GetStats();                
+            }
+            return;            
+        }
 
-
-       
+        public void DagRapport()
+        {
+            foreach (DeviceVM dvm in this.Devicelijst)
+            {
+                if (!dvm.ReportDevice) { continue; }
+                dvm.Create_DagRapport();
+            }
+            return;
+        }
     }
 }

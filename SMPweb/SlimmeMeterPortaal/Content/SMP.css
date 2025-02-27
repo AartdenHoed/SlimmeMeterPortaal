@@ -1,3 +1,6 @@
+html {
+    scroll-behavior: smooth;
+}
 body {
     padding: 0;
     margin: 0;
@@ -155,7 +158,77 @@ h2, h3 {
     padding-left: 25px;
     white-space: nowrap;
 }
-.syuse {
-    background-color: yellow
+.sy-dagrpt {
+    background-color: lightblue;
+    margin-right: 3%;
+    width: 100%;
+    font-size: smaller;
 }
+
+.sy-dagrpt th {
+    background-color: lightblue;
+    text-align: left;
+    padding-left: 25px;
+    white-space: nowrap;
+}
+
+.sy-dagrpt tr:nth-child(even) {
+    background-color: lightgrey;
+}
+
+.sy-dagrpt tr:nth-child(odd) {
+    background-color: darkgrey;
+}
+
+.sy-dagrpt td {
+    text-align: left;
+    padding-left: 25px;
+    white-space: nowrap;
+}
+.smp-title::first-letter {
+    text-transform: uppercase;
+}
+.smp-inc {
+    visibility: hidden;
+}
+.menu {
+    display: block;
+    padding: 0.5%;
+    margin: 0.5%;
+    float: left;
+    width: 95%;
+    height: 98%;
+    
+}
+
+.menu > li {
+    display: block;
+    margin: 3%;
+    padding: 3%;
+    text-align: center;
+    width: 90%;
+    height: 8%;
+    list-style: none;
+    border: solid 1px #000000;
+    border-radius: 8px;
+    box-shadow: 4px 4px 4px 0px#000000;
+    background-color: blue;
+}
+
+.menu > li > a {
+    color: white;
+    text-decoration: none;
+    display: block;
+    height: 100%;
+    width: 100%;
+    border: none;
+}
+
+.menu > li:hover {
+    box-shadow: 4px 4px 4px 0px #000000 inset;
+    background-color: lightseagreen;
+    font-weight: bold;
+    font-size: smaller;
+}
+
 

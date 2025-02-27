@@ -157,7 +157,6 @@
     </Compile>
     <Compile Include="ViewModels\DagVerbruik.cs" />
     <Compile Include="ViewModels\Stats.cs" />
-    <Compile Include="ViewModels\SMP_Input.cs" />
     <Compile Include="ViewModels\DeviceVM.cs" />
     <Compile Include="ViewModels\StroomMetingen.cs" />
     <Compile Include="ViewModels\GasMetingen.cs" />

@@ -19,7 +19,11 @@ namespace SlimmeMeterPortaal.Controllers
     {
         public async Task<ActionResult> Index()
         {
-            SMP_Report SMP_report = new SMP_Report();
+            SMP_Report SMP_report = new SMP_Report
+            {
+                IncludeGas = "Y",
+                IncludeStroom = "Y"
+            };
             
             string title = "Rapportage";
             string lvl = SMP_report.Message.Info;
@@ -35,7 +39,7 @@ namespace SlimmeMeterPortaal.Controllers
                 msg = "AWAIT failed rc = " + result.ToString();
             }
             SMP_report.Message.Fill(title, lvl, msg);
-
+            
             // Console.WriteLine("Stuur view");
 
             return View("Index", SMP_report);
@@ -47,7 +51,7 @@ namespace SlimmeMeterPortaal.Controllers
         {
             string title = "Rapportage";
             string lvl = SMP_report.Message.Info;
-            string msg = "Scroll naar beneden om de gevraagde rapportages te zien";
+            string msg = "Gebruik de knoppen links, of scroll naar beneden om de gevraagde rapportages te zien";
             string result;
 
             if (SMP_report.Devicelijst.Count == 0)
@@ -61,10 +65,9 @@ namespace SlimmeMeterPortaal.Controllers
                     msg = "AWAIT GETMETERS failed code = " + result;
                 }
             }            
+               
 
-            SMP_Input smp_Input = new SMP_Input();
-
-            Task<string> longRunningTask2 = smp_Input.GetUsage(SMP_report); 
+            Task<string> longRunningTask2 = SMP_report.GetUsage(); 
             result = await longRunningTask2;
             longRunningTask2.Dispose();
             if (result != "Ok")
@@ -73,7 +76,7 @@ namespace SlimmeMeterPortaal.Controllers
                 msg = "AWAIT GETUSAGE failed rc = " + result;
             }
 
-            Task<string> longRunningTask3 = smp_Input.GetReference(SMP_report);
+            Task<string> longRunningTask3 = SMP_report.GetReference();
             result = await longRunningTask3;
             longRunningTask3.Dispose();
             if (result != "Ok")
@@ -82,13 +85,13 @@ namespace SlimmeMeterPortaal.Controllers
                 msg = "AWAIT GETREFERENCE failed rc = " + result;
             }
 
-            smp_Input.Consolidate();
-            smp_Input.Statistics(); 
+            SMP_report.Consolidate();
+            SMP_report.Statistics(); 
 
             SMP_report.Message.Fill(title, lvl, msg);
-            SMP_report.Create_Report(smp_Input.GasUurLijst, smp_Input.GasStatistieken);
-            SMP_report.Create_Report(smp_Input.StroomUurLijst, smp_Input.StroomStatistieken);
 
+            SMP_report.DagRapport();
+           
             return View("DagRapport", SMP_report);
         }
     }

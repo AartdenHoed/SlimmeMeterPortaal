@@ -1,194 +1,238 @@
-﻿<div class="controller">
-    @model SlimmeMeterPortaal.ViewModels.SMP_Report
+﻿@model SlimmeMeterPortaal.ViewModels.SMP_Report
+<div class="leftcol" id="content">
+    <ul class="menu">
+        &nbsp;
+        <li><a href="#top">Input velden</a></li>
+        <li id="smp-gas"><a href="#gas">Gas rapport</a></li>
+        <li id="smp-stroom"> <a href="#stroom">Elektriciteit rapport</a></li>
+     </ul>    
+ 
+</div>
+<div class="midcol" id="content">
 
-    @using (Html.BeginForm())
-    {
-        @Html.AntiForgeryToken()
-       
+    <div class="controller">
 
-    <div class="form-horizontal">
-        <h2>
-            @Html.DisplayFor(model => model.Message.Title) &nbsp;
-        </h2>
-        <p>
-            @Html.DisplayFor(model => model.Message.Tekst) &nbsp;
-        </p>
-        <hr />
-        <table class="sy-table">
-            @if (Model.Devicelijst != null)
-            {
-                var i = 0;
 
-                foreach (var item in Model.Devicelijst)
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+
+
+        <div class="form-horizontal">
+            <h2 id="top">
+                @Html.DisplayFor(model => model.Message.Title) &nbsp;
+            </h2>
+            <p>
+                @Html.DisplayFor(model => model.Message.Tekst) &nbsp;
+            </p>
+            <hr />
+            <table class="sy-table">
+                @if (Model.Devicelijst != null)
                 {
-                    if (i == 0)
+                    var i = 0;
+
+                    foreach (var item in Model.Devicelijst)
                     {
+                        if (i == 0)
+                        {
+                            <tr>
+                                <th>@Html.DisplayNameFor(modelItem => item.ReportDevice)</th>
+                                <th>
+                                    @Html.DisplayNameFor(modelItem => item.DeviceType)
+                                </th>
+                                <th>
+                                    @Html.DisplayNameFor(modelItem => item.DeviceID)
+                                </th>
+                            </tr>
+                        }
+                        i = i + 1;
                         <tr>
-                            <th>@Html.DisplayNameFor(modelItem => item.ReportDevice)</th>
-                            <th>
-                                @Html.DisplayNameFor(modelItem => item.DeviceType)
-                            </th>
-                            <th>
-                                @Html.DisplayNameFor(modelItem => item.DeviceID)
-                            </th>
+                            <td>
+                                @Html.CheckBoxFor(modelItem => item.ReportDevice,
+                                     new { @class = "sy-input", @onclick = "Includeit(this)" })
+                                @Html.ValidationMessageFor(modelItem => item.ReportDevice, "", new { @class = "text-danger" })
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.DeviceType)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.DeviceID)
+                            </td>
                         </tr>
+
                     }
-                    i = i + 1;
-                    <tr>
-                        <td>
-                            @Html.EditorFor(modelItem => item.ReportDevice, new { htmlAttributes = new { @class = "sy-input" } })
-                            @Html.ValidationMessageFor(modelItem => item.ReportDevice, "", new { @class = "text-danger" })
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.DeviceType)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.DeviceID)
-                        </td>
-                    </tr>
-
                 }
-            }
-        </table>
+            </table>
 
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-        <dl class="sy-dl">
-            <dt class="sy-dt">
-                @Html.LabelFor(model => model.Rapportagedatum)
-            </dt>
-            <dd class="sy-dd">
-                @Html.EditorFor(model => model.Rapportagedatum, new { htmlAttributes = new { @class = "sy-input", @autofocus = "autofocus" } })
-                @Html.ValidationMessageFor(model => model.Rapportagedatum, "", new { @class = "text-danger" })
-            </dd>
-            <dt class="sy-dt">
-                @Html.LabelFor(model => model.ReferentieJaren)
-            </dt>
-            <dd class="sy-dd">
-                @Html.EditorFor(model => model.ReferentieJaren, new { htmlAttributes = new { @class = "sy-input40" } })
-                @Html.ValidationMessageFor(model => model.ReferentieJaren, "", new { @class = "text-danger" })
-            </dd>
-            <dt class="sy-dt">
-                @Html.LabelFor(model => model.ReferentieDagen)
-            </dt>
-            <dd class="sy-dd">
-                @Html.EditorFor(model => model.ReferentieDagen, new { htmlAttributes = new { @class = "sy-input40" } })
-                @Html.ValidationMessageFor(model => model.ReferentieDagen, "", new { @class = "text-danger" })
-            </dd>
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+            <dl class="sy-dl">
+                <dt class="sy-dt">
+                    @Html.LabelFor(model => model.Rapportagedatum)
+                </dt>
+                <dd class="sy-dd">
+                    @Html.EditorFor(model => model.Rapportagedatum, new { htmlAttributes = new { @class = "sy-input", @autofocus = "autofocus" } })
+                    @Html.ValidationMessageFor(model => model.Rapportagedatum, "", new { @class = "text-danger" })
+                </dd>
+                <dt class="sy-dt">
+                    @Html.LabelFor(model => model.ReferentieJaren)
+                </dt>
+                <dd class="sy-dd">
+                    @Html.EditorFor(model => model.ReferentieJaren, new { htmlAttributes = new { @class = "sy-input40" } })
+                    @Html.ValidationMessageFor(model => model.ReferentieJaren, "", new { @class = "text-danger" })
+                </dd>
+                <dt class="sy-dt">
+                    @Html.LabelFor(model => model.ReferentieDagen)
+                </dt>
+                <dd class="sy-dd">
+                    @Html.EditorFor(model => model.ReferentieDagen, new { htmlAttributes = new { @class = "sy-input40" } })
+                    @Html.ValidationMessageFor(model => model.ReferentieDagen, "", new { @class = "text-danger" })
+                </dd>
 
-        </dl>
+            </dl>
+            <div class="smp-inc">
+                @Html.EditorFor(model => model.IncludeGas)
+                @Html.EditorFor(model => model.IncludeStroom)
+            </div>
 
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Refresh" class="sy-button" />
+            <div class="form-group">
+                <div class="col-md-offset-2 col-md-10">
+                    <input type="submit" value="Refresh" class="sy-button" />
+                </div>
             </div>
         </div>
-    </div>
-    }
-<div>
-    <table class="sy-table">
-        @if (Model.RPT_lines.Count != 0)
+        }
+    <div>
+
+        @if (Model.Devicelijst != null)
         {
-            var i = 0;
-            foreach (var item in Model.RPT_lines)
+            foreach (var item in Model.Devicelijst)
             {
-                if ((i == 0) || (i == 26))
+                if ((item.ReportDevice) && (item.DagRapport.Count != 0))
                 {
-                <tr>
-                    <th>
-                        @Html.DisplayFor(modelItem => item.N)
-                    </th>
-                    <th>
-                        @Html.DisplayFor(modelItem => item.Min)
-                    </th >
-                    <th>
-                        @Html.DisplayFor(modelItem => item.Mean)
-                    </th >
-                    <th>
-                        @Html.DisplayFor(modelItem => item.Max)
-                    </th >
-                    <th>
-                        @Html.DisplayFor(modelItem => item.Label)
-                    </th >
-                    <th>
-                        @Html.DisplayFor(modelItem => item.Dag1)                        
-                    </th>
-                    <th>
-                        @Html.DisplayFor(modelItem => item.Dag2)                       
-                    </th>
-                    <th>
-                        @Html.DisplayFor(modelItem => item.Dag3)                       
-                    </th>
-                    <th>
-                        @Html.DisplayFor(modelItem => item.Dag4)                        
-                    </th>
-                    <th>
-                        @Html.DisplayFor(modelItem => item.Dag5)                        
-                    </th>
-                    <th>
-                        @Html.DisplayFor(modelItem => item.Dag6)                        
-                    </th>
-                    <th>
-                        @Html.DisplayFor(modelItem => item.Dag7)                       
-                    </th>
-                </tr>
+                    <p>&nbsp;</p>
+                    if (item.DeviceType == "gas")
+                    {
+                        <h1 class="smp-title" id="gas">
+                            @Html.DisplayFor(modelItem => item.DeviceType)
+                        </h1>
+                    }
+                    else
+                    {
+                        <h1 class="smp-title" id="stroom">
+                            @Html.DisplayFor(modelItem => item.DeviceType)
+                        </h1>
+                    }
+                    @:<table class="sy-dagrpt">
+                        var i = 0;
+                        foreach (var item2 in item.DagRapport)
+                        {
+                            if (i == 0)
+                            {
+                                <tr>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.N)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Min)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Mean)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Max)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Label)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Dag1)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Dag2)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Dag3)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Dag4)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Dag5)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Dag6)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Dag7)
+                                    </th>
+                                </tr>
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.N)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Min)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Mean)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Max)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Label)
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Dag1)
+                                        @Html.HiddenFor(modelItem => item2.Level1, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Dag2)
+                                        @Html.HiddenFor(modelItem => item2.Level2, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Dag3)
+                                        @Html.HiddenFor(modelItem => item2.Level3, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Dag4)
+                                        @Html.HiddenFor(modelItem => item2.Level4, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Dag5)
+                                        @Html.HiddenFor(modelItem => item2.Level5, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Dag6)
+                                        @Html.HiddenFor(modelItem => item2.Level6, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Dag7)
+                                        @Html.HiddenFor(modelItem => item2.Level7, new { @class = "sy-level" })
+                                    </td>
+                                </tr>
+                            }
+                            if (i == 24)
+                            {
+                                <tr style="border-bottom:5px solid black">
+                                    <td colspan=12></td>
+                                </tr>
+                            }
+                            i++;
+                        }
+                    @:</table>
                 }
-                else
-                {
-                    <tr >
-                        <td >
-                            @Html.DisplayFor(modelItem => item.N)
-                        </td >
-                        <td >
-                            @Html.DisplayFor(modelItem => item.Min)
-                        </td >
-                        <td >
-                            @Html.DisplayFor(modelItem => item.Mean)
-                        </td >
-                        <td >
-                            @Html.DisplayFor(modelItem => item.Max)
-                        </td >
-                        <td >
-                            @Html.DisplayFor(modelItem => item.Label)
-                        </td >
-                        <td class="sy-use">
-                            @Html.DisplayFor(modelItem => item.Dag1)
-                            @Html.HiddenFor(modelItem => item.Level1, new { @class = "sy-level" })
-                        </td>
-                        <td class="sy-use">
-                            @Html.DisplayFor(modelItem => item.Dag2)
-                            @Html.HiddenFor(modelItem => item.Level2, new { @class = "sy-level" })
-                        </td>
-                        <td class="sy-use">
-                            @Html.DisplayFor(modelItem => item.Dag3)
-                            @Html.HiddenFor(modelItem => item.Level3, new { @class = "sy-level" })
-                        </td>
-                        <td class="sy-use">
-                            @Html.DisplayFor(modelItem => item.Dag4)
-                            @Html.HiddenFor(modelItem => item.Level4, new { @class = "sy-level" })
-                        </td>
-                        <td class="sy-use">
-                            @Html.DisplayFor(modelItem => item.Dag5)
-                            @Html.HiddenFor(modelItem => item.Level5, new { @class = "sy-level" })
-                        </td>
-                        <td class="sy-use">
-                            @Html.DisplayFor(modelItem => item.Dag6)
-                            @Html.HiddenFor(modelItem => item.Level6, new { @class = "sy-level" })
-                        </td>
-                        <td class="sy-use">
-                            @Html.DisplayFor(modelItem => item.Dag7)
-                            @Html.HiddenFor(modelItem => item.Level7, new { @class = "sy-level" })
-                        </td>
-                    </tr >
-                }
-                i++;
             }
         }
+        <p>&nbsp;</p>
 
-</table >
+    </div>
 
-</div>
-
-    @section Scripts {
-        @Scripts.Render("~/bundles/jqueryval")
-    }
+        @section Scripts {
+            @Scripts.Render("~/bundles/jqueryval")
+        }
+    </div>
 </div>
