@@ -155,7 +155,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>SlimmeMeterPortaal.edmx</DependentUpon>
     </Compile>
+    <Compile Include="ViewModels\MaandVerbruik.cs" />
     <Compile Include="ViewModels\DagVerbruik.cs" />
+    <Compile Include="ViewModels\MaandStats.cs" />
     <Compile Include="ViewModels\Stats.cs" />
     <Compile Include="ViewModels\DeviceVM.cs" />
     <Compile Include="ViewModels\StroomMetingen.cs" />
@@ -231,6 +233,8 @@
     </Content>
     <Content Include="Views\Shared\_LayoutOLD.cshtml" />
     <Content Include="Views\Home\DagRapport.cshtml" />
+    <Content Include="Views\Home\IndexM.cshtml" />
+    <Content Include="Views\Home\MaandRapport.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -13,8 +13,9 @@ function SetLevels() {
     for (let i = 0; i < syuse.length; i++) {
         //alert(sylvl[i].value);
         var T = sylvl[i].value;
+        // alert(T);
         // if (T != '0') { alert(T); }
-        switch (T) {
+        switch (T) {           
             case '3':
                 //alert("red")
                 syuse[i].style.backgroundColor = "red";
@@ -42,6 +43,9 @@ function SetLevels() {
             case '-3':
                 //alert("darkgreen");
                 syuse[i].style.backgroundColor = "darkgreen";
+                break;
+            case '9':
+                //alert("darkgreen");
                 break;
             default:
                 alert("None???");

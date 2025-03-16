@@ -7,7 +7,6 @@ namespace SlimmeMeterPortaal.ViewModels
 {
     public class Stats
     {
-        public string VerbruiksType { get; set; }
         public List<UurStats> UurStatsList = new List<UurStats>();
         public DagStats DagStats = new DagStats();
         public int GetLevel(decimal d, StatNumbers statnumbers)

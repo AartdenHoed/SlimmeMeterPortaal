@@ -24,11 +24,11 @@ namespace SlimmeMeterPortaal.Controllers
                 IncludeGas = "Y",
                 IncludeStroom = "Y"
             };
-            
-            string title = "Rapportage";
+
+            string title = "Dagrapportage";
             string lvl = SMP_report.Message.Info;
-            string msg = "Geef de gevraagde input voor de rapportage";         
-                        
+            string msg = "Geef de gevraagde input voor de dagrapportage, of selecteer links de maandrapportage";
+
             Task<string> longRunningTask = SMP_report.GetMeters();
             string result = await longRunningTask;
             longRunningTask.Dispose();
@@ -39,17 +39,46 @@ namespace SlimmeMeterPortaal.Controllers
                 msg = "AWAIT failed rc = " + result.ToString();
             }
             SMP_report.Message.Fill(title, lvl, msg);
-            
+
             // Console.WriteLine("Stuur view");
 
             return View("Index", SMP_report);
         }
 
+        public async Task<ActionResult> IndexM()
+        {
+            SMP_Report SMP_report = new SMP_Report
+            {
+                IncludeGas = "Y",
+                IncludeStroom = "Y"
+            };
+
+            string title = "Maandrapportage";
+            string lvl = SMP_report.Message.Info;
+            string msg = "Geef de gevraagde input voor de maandrapportage, of selecteer links de dagrapportage";
+
+            Task<string> longRunningTask = SMP_report.GetMeters();
+            string result = await longRunningTask;
+            longRunningTask.Dispose();
+
+            if (result != "Ok")
+            {
+                lvl = SMP_report.Message.Error;
+                msg = "AWAIT failed rc = " + result.ToString();
+            }
+            SMP_report.Message.Fill(title, lvl, msg);
+
+            // Console.WriteLine("Stuur view");
+
+            return View("IndexM", SMP_report);
+        }
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DagRapport(SMP_Report SMP_report)
         {
-            string title = "Rapportage";
+            string title = "Dagrapportage";
             string lvl = SMP_report.Message.Info;
             string msg = "Gebruik de knoppen links, of scroll naar beneden om de gevraagde rapportages te zien";
             string result;
@@ -64,10 +93,10 @@ namespace SlimmeMeterPortaal.Controllers
                     lvl = SMP_report.Message.Error;
                     msg = "AWAIT GETMETERS failed code = " + result;
                 }
-            }            
-               
+            }
 
-            Task<string> longRunningTask2 = SMP_report.GetUsage(); 
+
+            Task<string> longRunningTask2 = SMP_report.GetUsage();
             result = await longRunningTask2;
             longRunningTask2.Dispose();
             if (result != "Ok")
@@ -86,13 +115,55 @@ namespace SlimmeMeterPortaal.Controllers
             }
 
             SMP_report.Consolidate();
-            SMP_report.Statistics(); 
+            SMP_report.Statistics();
 
             SMP_report.Message.Fill(title, lvl, msg);
 
             SMP_report.DagRapport();
-           
+
             return View("DagRapport", SMP_report);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> MaandRapport(SMP_Report SMP_report)
+        {
+            string title = "Maandrapportage";
+            string lvl = SMP_report.Message.Info;
+            string msg = "Gebruik de knoppen links, of scroll naar beneden om de gevraagde rapportages te zien";
+            string result;
+
+            if (SMP_report.Devicelijst.Count == 0)
+            {
+                Task<string> longRunningTask1 = SMP_report.GetMeters();
+                result = await longRunningTask1;
+                longRunningTask1.Dispose();
+                if (result != "Ok")
+                {
+                    lvl = SMP_report.Message.Error;
+                    msg = "AWAIT GETMETERS failed code = " + result;
+                }
+            }
+
+            Task<string> longRunningTask2 = SMP_report.GetMonthUsage();
+            result = await longRunningTask2;
+            longRunningTask2.Dispose();
+            if (result != "Ok")
+            {
+                lvl = SMP_report.Message.Error;
+                msg = "AWAIT GETMONTHUSAGE failed rc = " + result;
+            }
+
+            SMP_report.GetMaandCijfers();
+            
+            SMP_report.GetMonthStats();
+
+            SMP_report.Message.Fill(title, lvl, msg);
+
+            SMP_report.MaandRapport();
+
+            return View("MaandRapport", SMP_report);
         }
     }
 }

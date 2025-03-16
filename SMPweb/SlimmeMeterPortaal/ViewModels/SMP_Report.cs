@@ -199,5 +199,67 @@ namespace SlimmeMeterPortaal.ViewModels
             }
             return;
         }
+
+        public async Task<string> GetMonthUsage()
+        {
+            foreach (DeviceVM dvm in this.Devicelijst)
+            {
+                if (!dvm.ReportDevice) { continue; }
+                int firstYear = this.Rapportagedatum.AddYears(-1*this.ReferentieJaren).Year;
+                int currentYear = DateTime.Now.Year;
+                for (int i = firstYear; i <= currentYear; i++)
+                {
+                    DateTime entrydate = this.Rapportagedatum.AddDays(i);
+                    Task<string> longRunningTask = dvm.GetSMPmonth(i, this.APIkey);
+                    string result = await longRunningTask;
+
+                    if (result != "Ok")
+                    {
+                        throw new Exception("Function GetSMPmonth failed");
+
+                    }
+                }
+
+            }
+            return "Ok";
+        }
+
+        public void GetMaandCijfers()       
+        {
+            foreach (DeviceVM dvm in this.Devicelijst)
+            {
+                if (!dvm.ReportDevice) { continue; }
+                switch (dvm.DeviceType)
+                {
+                    case "gas":
+                        dvm.GasMaandCijfers();
+                        break;
+                    case "elektriciteit":
+                        dvm.StroomMaandCijfers();
+                        break;
+                }
+            }
+            return;
+        }
+
+        public void GetMonthStats()
+        {
+            foreach (DeviceVM dvm in this.Devicelijst)
+            {
+                if (!dvm.ReportDevice) { continue; }
+                dvm.MonthStats();
+            }
+            return;
+        }
+
+        public void MaandRapport()
+        {
+            foreach (DeviceVM dvm in this.Devicelijst)
+            {
+                if (!dvm.ReportDevice) { continue; }
+                dvm.Create_MaandRapport();
+            }
+            return;
+        }
     }
 }

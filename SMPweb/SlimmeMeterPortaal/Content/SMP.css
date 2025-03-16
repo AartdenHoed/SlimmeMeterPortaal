@@ -192,6 +192,9 @@ h2, h3 {
 .smp-inc {
     visibility: hidden;
 }
+.smp-skip {
+    visibility: hidden;
+}
 .menu {
     display: block;
     padding: 0.5%;
