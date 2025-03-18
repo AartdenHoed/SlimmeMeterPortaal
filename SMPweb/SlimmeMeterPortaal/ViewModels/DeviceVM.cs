@@ -73,6 +73,7 @@ namespace SlimmeMeterPortaal.ViewModels
         public List<MaandVerbruik> MaandVerbruiken = new List<MaandVerbruik>() ;
         public MaandStats MaandStats = new MaandStats();
         private readonly string[] MaandArray = { "Jan", "Feb", "Mrt", "Apr", "Mei", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec" };
+        public string LastMonthDate {  get; set; }
 
         public List<RPT_line> DagRapport = new List<RPT_line>();
         public class RPT_line
@@ -132,7 +133,26 @@ namespace SlimmeMeterPortaal.ViewModels
             public int Level12 { get; set; }                   
         }
 
-        public async Task<string> GetSMPday(string datestring, string apikey, string listtype)
+        public List<Meterstand> Meterstanden = new List<Meterstand>();
+        public class Meterstand
+        {
+            public string Jaar { get; set; }
+            public string Eenheid { get; set; }
+            public string Maand01 { get; set; }
+            public string Maand02 { get; set; }
+            public string Maand03 { get; set; }
+            public string Maand04 { get; set; }
+            public string Maand05 { get; set; }
+            public string Maand06 { get; set; }
+            public string Maand07 { get; set; }
+            public string Maand08 { get; set; }
+            public string Maand09 { get; set; }
+            public string Maand10 { get; set; }
+            public string Maand11 { get; set; }
+            public string Maand12 { get; set; }
+        }
+
+            public async Task<string> GetSMPday(string datestring, string apikey, string listtype)
         {
             string url = "https://app.slimmemeterportal.nl/userapi/v1/connections/" + this.DeviceID.Trim() + "/usage/" + datestring;
 
@@ -656,11 +676,12 @@ namespace SlimmeMeterPortaal.ViewModels
             bool last = false;
             for (int mo = 1; mo <= 12; mo++)
             {
-                datestring = "01-" + mo.ToString("D2") + "-" + year.ToString("D4");
+                datestring = "01-" + mo.ToString("D2") + "-" + year.ToString("D4");                
                 
                 DateTime testdate = DateTime.ParseExact(datestring, "dd-MM-yyyy", null);
-                if (testdate > DateTime.Now) { 
-                    datestring = DateTime.Now.AddDays(-1).ToString("dd-MM-yyyy");
+                if (testdate > DateTime.Now.AddDays(-2)) { 
+                    datestring = DateTime.Now.AddDays(-2).ToString("dd-MM-yyyy");
+                    this.LastMonthDate = datestring;
                     last = true;
                 }
 
@@ -685,6 +706,7 @@ namespace SlimmeMeterPortaal.ViewModels
             string maandlabel;
             decimal startreading = 0;
             decimal endreading;
+            decimal meterstandtotaal = 0;
             
             int startyear = this.MaandGasMetingen[0].VerbruiksDatum.Year;
             int endyear = DateTime.Now.Year;
@@ -719,6 +741,13 @@ namespace SlimmeMeterPortaal.ViewModels
                             currentyear = GasMetingen.VerbruiksDatum.Year;
 
                             newyear = false;
+
+                            // Get meterstanden
+                            string total = GasMetingen.MetingLijst.usages[0].delivery_reading;
+                            int itotal = Int32.Parse(total.Replace(",", "").Replace(".", ""));
+                            decimal dtotal = itotal;
+                            meterstandtotaal = dtotal / 100;
+
                         }
                     }
                     else
@@ -740,15 +769,26 @@ namespace SlimmeMeterPortaal.ViewModels
                         {
                             MaandLabel = maandlabel,
                             MaandNummer = maandnr,
-                            Cijfer = monthusage
+                            Cijfer = monthusage,
+                            MeterstandTotaal = meterstandtotaal,
+                            MeterstandLaagTarief = 0,
+                            MeterstandNormaalTarief = 0
                         };
                         maandverbruik.MaandCijfers.Add(maandCijfer);
+
                         startreading = endreading;
+                        string total = GasMetingen.MetingLijst.usages[0].delivery_reading;
+                        int itotal = Int32.Parse(total.Replace(",", "").Replace(".", ""));
+                        decimal dtotal = itotal;
+                        meterstandtotaal = dtotal / 100;
+
                         if (currentyear != GasMetingen.VerbruiksDatum.Year)
                         {
                             this.MaandVerbruiken.Add(maandverbruik);
                             break;
                         }
+
+                        
                     }
                 }
                 if (currentyear == DateTime.Now.Year)
@@ -776,6 +816,9 @@ namespace SlimmeMeterPortaal.ViewModels
             string maandlabel;
             decimal startreading = 0;
             decimal endreading;
+            decimal meterstandtotaal = 0;
+            decimal meterstandnormaaltarief = 0;
+            decimal meterstandlaagtarief = 0;
 
             int startyear = this.MaandStroomMetingen[0].VerbruiksDatum.Year;
             int endyear = DateTime.Now.Year;
@@ -810,6 +853,33 @@ namespace SlimmeMeterPortaal.ViewModels
                             currentyear = StroomMetingen.VerbruiksDatum.Year;
 
                             newyear = false;
+
+                            // Get meterstanden
+                            string total = StroomMetingen.MetingLijst.usages[0].delivery_reading_combined;
+                            int itotal = Int32.Parse(total.Replace(",", "").Replace(".", ""));
+                            decimal dtotal = itotal;
+                            meterstandtotaal = dtotal / 100;
+                            string normal = StroomMetingen.MetingLijst.usages[0].delivery_reading_high;
+                            if (string.IsNullOrEmpty(normal))
+                            {
+                                meterstandnormaaltarief = 0;
+                            }
+                            else {
+                                int inormal = Int32.Parse(normal.Replace(",", "").Replace(".", ""));
+                                decimal dnormal = inormal;
+                                meterstandnormaaltarief = dnormal / 100;
+                            }
+                            string low = StroomMetingen.MetingLijst.usages[0].delivery_reading_low;
+                            if (string.IsNullOrEmpty(low))
+                            {
+                                meterstandlaagtarief = 0;
+                            }
+                            else
+                            {
+                                int ilow = Int32.Parse(low.Replace(",", "").Replace(".", ""));
+                                decimal dlow = ilow;
+                                meterstandlaagtarief = dlow / 100;
+                            }
                         }
                     }
                     else
@@ -831,15 +901,49 @@ namespace SlimmeMeterPortaal.ViewModels
                         {
                             MaandLabel = maandlabel,
                             MaandNummer = maandnr,
-                            Cijfer = monthusage
+                            Cijfer = monthusage,
+                            MeterstandTotaal = meterstandtotaal,
+                            MeterstandNormaalTarief = meterstandnormaaltarief,
+                            MeterstandLaagTarief = meterstandlaagtarief
                         };
+
                         maandverbruik.MaandCijfers.Add(maandCijfer);
                         startreading = endreading;
+
+                        // Get meterstanden
+                        string total = StroomMetingen.MetingLijst.usages[0].delivery_reading_combined;
+                        int itotal = Int32.Parse(total.Replace(",", "").Replace(".", ""));
+                        decimal dtotal = itotal;
+                        meterstandtotaal = dtotal / 100;
+                        string normal = StroomMetingen.MetingLijst.usages[0].delivery_reading_high;
+                        if (string.IsNullOrEmpty(normal))
+                        {
+                            meterstandnormaaltarief = 0;
+                        }
+                        else
+                        {
+                            int inormal = Int32.Parse(normal.Replace(",", "").Replace(".", ""));
+                            decimal dnormal = inormal;
+                            meterstandnormaaltarief = dnormal / 100;
+                        }
+                        string low = StroomMetingen.MetingLijst.usages[0].delivery_reading_low;
+                        if (string.IsNullOrEmpty(low))
+                        {
+                            meterstandlaagtarief = 0;
+                        }
+                        else
+                        {
+                            int ilow = Int32.Parse(low.Replace(",", "").Replace(".", ""));
+                            decimal dlow = ilow;
+                            meterstandlaagtarief = dlow / 100;
+                        }
+
                         if (currentyear != StroomMetingen.VerbruiksDatum.Year)
                         {
                             this.MaandVerbruiken.Add(maandverbruik);
                             break;
-                        }
+                        }                      
+
                     }
                 }
                 if (currentyear == DateTime.Now.Year)
@@ -852,7 +956,10 @@ namespace SlimmeMeterPortaal.ViewModels
                         {
                             MaandLabel = this.MaandArray[j - 1],
                             MaandNummer = j,
-                            Cijfer = 0
+                            Cijfer = 0,
+                            MeterstandTotaal = 0,
+                            MeterstandNormaalTarief = 0,
+                            MeterstandLaagTarief = 0
                         };
                         maandverbruik.MaandCijfers.Add(dummy);
                     }
@@ -1133,9 +1240,54 @@ namespace SlimmeMeterPortaal.ViewModels
                 };
                 this.MaandRapport.Add(lined);
 
-            }            
+            }
 
-            return;
+            //==========================================================================================
+
+            Meterstand Meterstand1 = new Meterstand
+            {
+                Jaar = "Jaar",               
+                Eenheid = "Eenheid",               
+                Maand01 = this.MaandArray[0],
+                Maand02 = this.MaandArray[1],
+                Maand03 = this.MaandArray[2],
+                Maand04 = this.MaandArray[3],
+                Maand05 = this.MaandArray[4],
+                Maand06 = this.MaandArray[5],
+                Maand07 = this.MaandArray[6],
+                Maand08 = this.MaandArray[7],
+                Maand09 = this.MaandArray[8],
+                Maand10 = this.MaandArray[9],
+                Maand11 = this.MaandArray[10],
+                Maand12 = this.MaandArray[11]
+            };
+            this.Meterstanden.Add(Meterstand1);
+
+            foreach (MaandVerbruik m in this.MaandVerbruiken)
+            {
+                Meterstand Meterstand2 = new Meterstand
+                {
+                    Jaar = m.Jaar.ToString("D2"),
+                    Eenheid = this.DeviceType == "gas" ? "m3" : "KwH",
+
+                    Maand01 = m.MaandCijfers[0].MeterstandTotaal.ToString("N0"),
+                    Maand02 = m.MaandCijfers[1].MeterstandTotaal.ToString("N0"),
+                    Maand03 = m.MaandCijfers[2].MeterstandTotaal.ToString("N0"),
+                    Maand04 = m.MaandCijfers[3].MeterstandTotaal.ToString("N0"),
+                    Maand05 = m.MaandCijfers[4].MeterstandTotaal.ToString("N0"),
+                    Maand06 = m.MaandCijfers[5].MeterstandTotaal.ToString("N0"),
+                    Maand07 = m.MaandCijfers[6].MeterstandTotaal.ToString("N0"),
+                    Maand08 = m.MaandCijfers[7].MeterstandTotaal.ToString("N0"),
+                    Maand09 = m.MaandCijfers[8].MeterstandTotaal.ToString("N0"),
+                    Maand10 = m.MaandCijfers[9].MeterstandTotaal.ToString("N0"),
+                    Maand11 = m.MaandCijfers[10].MeterstandTotaal.ToString("N0"),
+                    Maand12 = m.MaandCijfers[11].MeterstandTotaal.ToString("N0")
+                };
+                this.Meterstanden.Add(Meterstand2);
+            }
+
+
+                return;
            
         }
     }

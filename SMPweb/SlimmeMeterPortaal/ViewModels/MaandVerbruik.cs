@@ -34,6 +34,9 @@ namespace SlimmeMeterPortaal.ViewModels
         public string MaandLabel {  get; set; }
         public int MaandNummer { get; set; }          
         public decimal Cijfer { get; set; }
+        public decimal MeterstandTotaal { get; set; }
+        public decimal MeterstandNormaalTarief { get; set; }
+        public decimal MeterstandLaagTarief { get; set; }
        
     }    
     

@@ -103,12 +103,16 @@
                     {
                         <h1 class="smp-title" id="gas">
                             @Html.DisplayFor(modelItem => item.DeviceType)
+                            - Overzicht tot en met
+                            @Html.DisplayFor(modelItem => item.LastMonthDate)
                         </h1>
                     }
                     else
                     {
                         <h1 class="smp-title" id="stroom">
                             @Html.DisplayFor(modelItem => item.DeviceType)
+                            - Overzicht tot en met
+                            @Html.DisplayFor(modelItem => item.LastMonthDate)
                         </h1>
                     }
                     @:<table class="sy-dagrpt">
@@ -117,57 +121,57 @@
                         {
                             if (i == 0)
                             {
-                          <tr>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Jaar)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Attribuut)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Eenheid)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Totaal)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Maand01)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Maand02)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Maand03)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Maand04)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Maand05)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Maand06)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Maand07)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Maand08)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Maand09)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Maand10)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Maand11)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Maand12)
-                              </th>
+                                <tr>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Jaar)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Attribuut)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Eenheid)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Totaal)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand01)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand02)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand03)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand04)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand05)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand06)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand07)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand08)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand09)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand10)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand11)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand12)
+                                    </th>
 
-                          </tr>
+                                </tr>
                                 {
                                     <tr style="border-bottom:5px solid black">
                                         <td colspan=12></td>
@@ -176,82 +180,208 @@
                             }
                             else
                             {
-                      <tr>
-                          <td>
-                              @Html.DisplayFor(modelItem => item2.Jaar)
-                          </td>
-                          <td>
-                              @Html.DisplayFor(modelItem => item2.Attribuut)
-                          </td>
-                          <td>
-                              @Html.DisplayFor(modelItem => item2.Eenheid)
-                          </td>
-                          <td>
-                              @Html.DisplayFor(modelItem => item2.Totaal)
-                          </td>
-                          <td class="sy-use">
-                              @Html.DisplayFor(modelItem => item2.Maand01)
-                              @Html.HiddenFor(modelItem => item2.Level01, new { @class = "sy-level" })
-                          </td>
-                          <td class="sy-use">
-                              @Html.DisplayFor(modelItem => item2.Maand02)
-                              @Html.HiddenFor(modelItem => item2.Level02, new { @class = "sy-level" })
-                          </td>
-                          <td class="sy-use">
-                              @Html.DisplayFor(modelItem => item2.Maand03)
-                              @Html.HiddenFor(modelItem => item2.Level03, new { @class = "sy-level" })
-                          </td>
-                          <td class="sy-use">
-                              @Html.DisplayFor(modelItem => item2.Maand04)
-                              @Html.HiddenFor(modelItem => item2.Level04, new { @class = "sy-level" })
-                          </td>
-                          <td class="sy-use">
-                              @Html.DisplayFor(modelItem => item2.Maand05)
-                              @Html.HiddenFor(modelItem => item2.Level05, new { @class = "sy-level" })
-                          </td>
-                          <td class="sy-use">
-                              @Html.DisplayFor(modelItem => item2.Maand06)
-                              @Html.HiddenFor(modelItem => item2.Level06, new { @class = "sy-level" })
-                          </td>
-                          <td class="sy-use">
-                              @Html.DisplayFor(modelItem => item2.Maand07)
-                              @Html.HiddenFor(modelItem => item2.Level07, new { @class = "sy-level" })
-                          </td>
-                          <td class="sy-use">
-                              @Html.DisplayFor(modelItem => item2.Maand08)
-                              @Html.HiddenFor(modelItem => item2.Level08, new { @class = "sy-level" })
-                          </td>
-                          <td class="sy-use">
-                              @Html.DisplayFor(modelItem => item2.Maand09)
-                              @Html.HiddenFor(modelItem => item2.Level09, new { @class = "sy-level" })
-                          </td>
-                          <td class="sy-use">
-                              @Html.DisplayFor(modelItem => item2.Maand10)
-                              @Html.HiddenFor(modelItem => item2.Level10, new { @class = "sy-level" })
-                          </td>
-                          <td class="sy-use">
-                              @Html.DisplayFor(modelItem => item2.Maand11)
-                              @Html.HiddenFor(modelItem => item2.Level11, new { @class = "sy-level" })
-                          </td>
-                          <td class="sy-use">
-                              @Html.DisplayFor(modelItem => item2.Maand12)
-                              @Html.HiddenFor(modelItem => item2.Level12, new { @class = "sy-level" })
-                          </td>
-                      </tr>
-                            }
-                            if (i == 24)
-                            {
-                                <tr style="border-bottom:5px solid black">
-                                    <td colspan=12></td>
+                                <tr>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Jaar)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Attribuut)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Eenheid)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Totaal)
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Maand01)
+                                        @Html.HiddenFor(modelItem => item2.Level01, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Maand02)
+                                        @Html.HiddenFor(modelItem => item2.Level02, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Maand03)
+                                        @Html.HiddenFor(modelItem => item2.Level03, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Maand04)
+                                        @Html.HiddenFor(modelItem => item2.Level04, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Maand05)
+                                        @Html.HiddenFor(modelItem => item2.Level05, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Maand06)
+                                        @Html.HiddenFor(modelItem => item2.Level06, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Maand07)
+                                        @Html.HiddenFor(modelItem => item2.Level07, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Maand08)
+                                        @Html.HiddenFor(modelItem => item2.Level08, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Maand09)
+                                        @Html.HiddenFor(modelItem => item2.Level09, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Maand10)
+                                        @Html.HiddenFor(modelItem => item2.Level10, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Maand11)
+                                        @Html.HiddenFor(modelItem => item2.Level11, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Maand12)
+                                        @Html.HiddenFor(modelItem => item2.Level12, new { @class = "sy-level" })
+                                    </td>
                                 </tr>
                             }
                             i++;
                         }
                     @:</table>
+                    <p> &nbsp;</p>
+                    <p> &nbsp;</p>
+
+                    if (item.DeviceType == "gas")
+                    {
+                        <h2 class="smp-title" id="gas">
+                            @Html.DisplayFor(modelItem => item.DeviceType)
+                            - Meterstanden per eerste van elke maand
+                        </h2>
+                    }
+                    else
+                    {
+                        <h2 class="smp-title" id="stroom">
+                            @Html.DisplayFor(modelItem => item.DeviceType)
+                            - Meterstanden per eerste van elke maand
+                        </h2>
+                    }
+                    @:<table class="sy-dagrpt">
+                        var j = 0;
+                        foreach (var item2 in item.Meterstanden)
+                        {
+                            if (j == 0)
+                            {
+                                <tr>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Jaar)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Eenheid)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand01)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand02)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand03)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand04)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand05)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand06)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand07)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand08)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand09)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand10)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand11)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Maand12)
+                                    </th>
+
+                                </tr>
+                                {
+                                    <tr style="border-bottom:5px solid black">
+                                        <td colspan=12></td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Jaar)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Eenheid)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Maand01)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Maand02)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Maand03)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Maand04)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Maand05)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Maand06)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Maand07)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Maand08)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Maand09)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Maand10)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Maand11)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Maand12)
+                                    </td>
+                                </tr>
+                            }
+
+                            j++;
+                        }
+                    @:</table> <p> &nbsp;</p>
+                    <p> &nbsp;</p>
+                    <p> &nbsp;</p>
+                    <p> &nbsp;</p>
+                    <p> &nbsp;</p>
+                    <p> &nbsp;</p>
+                    <p> &nbsp;</p>
+
                 }
             }
         }
-        <p>&nbsp;</p>
+
 
     </div>
 
