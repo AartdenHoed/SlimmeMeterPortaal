@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -48,6 +49,27 @@ namespace SlimmeMeterPortaal.ViewModels
         [DisplayName("Meter type")]
         public string DeviceType { get; set; }
 
+        public string Eenheid
+        {
+            get
+            {
+                if (this.DeviceType == "gas")
+                {
+                    return "m3";
+                }
+                else
+                {
+                    return "KwH";
+                }
+            }
+        }
+
+        public string ReportType
+        {
+            get
+            { return this.DeviceType[0].ToString().ToUpper() + this.DeviceType.Substring(1); }        
+        }
+
         [DisplayName("Meter start datum")]
         public System.DateTime Startdate { get; set; }
 
@@ -74,6 +96,22 @@ namespace SlimmeMeterPortaal.ViewModels
         public MaandStats MaandStats = new MaandStats();
         private readonly string[] MaandArray = { "Jan", "Feb", "Mrt", "Apr", "Mei", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec" };
         public string LastMonthDate {  get; set; }
+        public decimal LastMonthForecast { get; set; }  
+        public int LastMonthLevel { get
+            {
+                DateTime lm = DateTime.ParseExact(this.LastMonthDate, "dd-MM-yyyy", null);
+                int maand = lm.Month;
+                return this.MaandStats.GetLevel(this.LastMonthForecast, this.MaandStats.MaandGegevens[maand-1].MaandStatistiek);
+            } 
+        }
+
+        public string LastMonthName { get
+            {
+                DateTime lm = DateTime.ParseExact(this.LastMonthDate, "dd-MM-yyyy", null);
+                int maand = lm.Month;
+                return this.MaandArray[maand - 1];
+            } 
+        }
 
         public List<RPT_line> DagRapport = new List<RPT_line>();
         public class RPT_line
@@ -621,7 +659,7 @@ namespace SlimmeMeterPortaal.ViewModels
                     Mean = Statistieken.UurStatsList[i].StatNumbers.Mean.ToString("N2"),
                     Max = Statistieken.UurStatsList[i].StatNumbers.Max.ToString("N2"),
                     Label = Statistieken.UurStatsList[i].UurLabel,
-                    Eenheid = this.DeviceType == "gas" ? "m3" : "KwH",
+                    Eenheid = this.Eenheid,
                     Dag1 = this.UurVerbruik[0].UurLijst[i].AantalMetingen == 0 ? "n/a" : this.UurVerbruik[0].UurLijst[i].UurVerbruik.ToString("N2"),
                     Dag2 = this.UurVerbruik[1].UurLijst[i].AantalMetingen == 0 ? "n/a" : this.UurVerbruik[1].UurLijst[i].UurVerbruik.ToString("N2"),
                     Dag3 = this.UurVerbruik[2].UurLijst[i].AantalMetingen == 0 ? "n/a" : this.UurVerbruik[2].UurLijst[i].UurVerbruik.ToString("N2"),
@@ -649,7 +687,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 Mean = Statistieken.DagStats.StatNumbers.Mean.ToString("N2"),
                 Max = Statistieken.DagStats.StatNumbers.Max.ToString("N2"),
                 Label = "Dag Totaal",
-                Eenheid = this.DeviceType == "gas" ? "m3" : "KwH",
+                Eenheid = this.Eenheid,
                 Dag1 = this.UurVerbruik[0].TotaalperDag.ToString("N2"),
                 Dag2 = this.UurVerbruik[1].TotaalperDag.ToString("N2"),
                 Dag3 = this.UurVerbruik[2].TotaalperDag.ToString("N2"),
@@ -762,7 +800,10 @@ namespace SlimmeMeterPortaal.ViewModels
                         decimal dstart = istart;
                         endreading = dstart / 100;
                         decimal monthusage = endreading - startreading;
-                        maandnr = GasMetingen.VerbruiksDatum.Month - 1;
+                        if (GasMetingen.VerbruiksDatum.Day == 1)
+                        {
+                            maandnr = GasMetingen.VerbruiksDatum.Month - 1;
+                        }                        
                         if (maandnr == 0) { maandnr = 12; }
                         maandlabel = this.MaandArray[maandnr - 1];
                         MaandCijfer maandCijfer = new MaandCijfer
@@ -795,6 +836,10 @@ namespace SlimmeMeterPortaal.ViewModels
                 {
                     // Add last (incomplete) year
                     int q = maandverbruik.MaandCijfers.Count;
+                    int maxdays = DateTime.DaysInMonth(currentyear, maandverbruik.MaandCijfers[q - 1].MaandNummer);
+                    DateTime lastmonth = DateTime.ParseExact(this.LastMonthDate, "dd-MM-yyyy", null);
+                    int nrofdays = lastmonth.Day;
+                    this.LastMonthForecast = maandverbruik.MaandCijfers[q - 1].Cijfer * maxdays / nrofdays;
                     for (int j = q; j <= 12; j++)
                     {
                         MaandCijfer dummy = new MaandCijfer
@@ -894,7 +939,10 @@ namespace SlimmeMeterPortaal.ViewModels
                         decimal dstart = istart;
                         endreading = dstart / 100;
                         decimal monthusage = endreading - startreading;
-                        maandnr = StroomMetingen.VerbruiksDatum.Month - 1;
+                        if (StroomMetingen.VerbruiksDatum.Day == 1)
+                        {
+                            maandnr = StroomMetingen.VerbruiksDatum.Month - 1;
+                        }
                         if (maandnr == 0) { maandnr = 12; }
                         maandlabel = this.MaandArray[maandnr - 1];
                         MaandCijfer maandCijfer = new MaandCijfer
@@ -940,7 +988,7 @@ namespace SlimmeMeterPortaal.ViewModels
 
                         if (currentyear != StroomMetingen.VerbruiksDatum.Year)
                         {
-                            this.MaandVerbruiken.Add(maandverbruik);
+                            this.MaandVerbruiken.Add(maandverbruik);                           
                             break;
                         }                      
 
@@ -950,6 +998,11 @@ namespace SlimmeMeterPortaal.ViewModels
                 {
                     // Add last (incomplete) year
                     int q = maandverbruik.MaandCijfers.Count;
+                    int maxdays = DateTime.DaysInMonth(currentyear, maandverbruik.MaandCijfers[q-1].MaandNummer);
+                    DateTime lastmonth = DateTime.ParseExact(this.LastMonthDate, "dd-MM-yyyy", null);
+                    int nrofdays = lastmonth.Day;
+                    this.LastMonthForecast = maandverbruik.MaandCijfers[q - 1].Cijfer * maxdays / nrofdays;
+                    
                     for (int j = q; j <= 12; j++)
                     {
                         MaandCijfer dummy = new MaandCijfer
@@ -1105,7 +1158,7 @@ namespace SlimmeMeterPortaal.ViewModels
             {
                 Jaar = "",
                 Attribuut = "Min",
-                Eenheid = this.DeviceType == "gas" ? "m3" : "KwH",
+                Eenheid = this.Eenheid,
                 Totaal = this.MaandStats.JaarStats.MYStatistiek.Min.ToString("N2"),
                 Maand01 = this.MaandStats.MaandGegevens[0].MaandStatistiek.Min.ToString("N2"),
                 Maand02 = this.MaandStats.MaandGegevens[1].MaandStatistiek.Min.ToString("N2"),
@@ -1139,7 +1192,7 @@ namespace SlimmeMeterPortaal.ViewModels
             {
                 Jaar = "",
                 Attribuut = "Mean",
-                Eenheid = this.DeviceType == "gas" ? "m3" : "KwH",
+                Eenheid = this.Eenheid,
                 Totaal = this.MaandStats.JaarStats.MYStatistiek.Mean.ToString("N2"),
                 Maand01 = this.MaandStats.MaandGegevens[0].MaandStatistiek.Mean.ToString("N2"),
                 Maand02 = this.MaandStats.MaandGegevens[1].MaandStatistiek.Mean.ToString("N2"),
@@ -1173,7 +1226,7 @@ namespace SlimmeMeterPortaal.ViewModels
             {
                 Jaar = "",
                 Attribuut = "Max",
-                Eenheid = this.DeviceType == "gas" ? "m3" : "KwH",
+                Eenheid = this.Eenheid,
                 Totaal = this.MaandStats.JaarStats.MYStatistiek.Max.ToString("N2"),
                 Maand01 = this.MaandStats.MaandGegevens[0].MaandStatistiek.Max.ToString("N2"),
                 Maand02 = this.MaandStats.MaandGegevens[1].MaandStatistiek.Max.ToString("N2"),
@@ -1209,7 +1262,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 {
                     Jaar = m.Jaar.ToString("D2"),
                     Attribuut = "",
-                    Eenheid = this.DeviceType == "gas" ? "m3" : "KwH",
+                    Eenheid = this.Eenheid,
                     Totaal = m.TotaalperJaar.ToString("N2"),
                     
                     Maand01 = (m.MaandCijfers[0].Cijfer == 0) ? "n/a" : m.MaandCijfers[0].Cijfer.ToString("N2"),
@@ -1268,7 +1321,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 Meterstand Meterstand2 = new Meterstand
                 {
                     Jaar = m.Jaar.ToString("D2"),
-                    Eenheid = this.DeviceType == "gas" ? "m3" : "KwH",
+                    Eenheid = this.Eenheid,
 
                     Maand01 = m.MaandCijfers[0].MeterstandTotaal.ToString("N0"),
                     Maand02 = m.MaandCijfers[1].MeterstandTotaal.ToString("N0"),

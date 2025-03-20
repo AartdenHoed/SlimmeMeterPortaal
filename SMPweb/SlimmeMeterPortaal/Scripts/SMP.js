@@ -100,7 +100,7 @@ function Navigate() {
         //    document.getElementById("smp-gas").style.visibility = "visible";
         //}
     }
-    var stroom = document.getElementById("stroom");
+    var stroom = document.getElementById("elektriciteit");
     var stroomlink = document.getElementById("smp-stroom");
     //alert(stroom);
     if (stroomlink != null) {

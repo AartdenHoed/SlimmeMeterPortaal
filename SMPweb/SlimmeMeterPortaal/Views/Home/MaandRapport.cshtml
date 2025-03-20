@@ -6,7 +6,7 @@
         <li class="smp-skip">&nbsp;</li>
         <li><a href="#top">Input velden</a></li>
         <li id="smp-gas"><a href="#gas">Gas rapport</a></li>
-        <li id="smp-stroom"> <a href="#stroom">Elektriciteit rapport</a></li>
+        <li id="smp-stroom"> <a href="#elektriciteit">Elektriciteit rapport</a></li>
     </ul>
 
 </div>
@@ -99,22 +99,12 @@
                 if ((item.ReportDevice) && (item.MaandRapport.Count != 0))
                 {
                     <p>&nbsp;</p>
-                    if (item.DeviceType == "gas")
-                    {
-                        <h1 class="smp-title" id="gas">
-                            @Html.DisplayFor(modelItem => item.DeviceType)
-                            - Overzicht tot en met
-                            @Html.DisplayFor(modelItem => item.LastMonthDate)
-                        </h1>
-                    }
-                    else
-                    {
-                        <h1 class="smp-title" id="stroom">
-                            @Html.DisplayFor(modelItem => item.DeviceType)
-                            - Overzicht tot en met
-                            @Html.DisplayFor(modelItem => item.LastMonthDate)
-                        </h1>
-                    }
+                    <h1 id="@(item.DeviceType)">
+                        @Html.DisplayFor(modelItem => item.ReportType)
+                        - Overzicht tot en met
+                        @Html.DisplayFor(modelItem => item.LastMonthDate)
+                    </h1>
+
                     @:<table class="sy-dagrpt">
                         var i = 0;
                         foreach (var item2 in item.MaandRapport)
@@ -247,22 +237,19 @@
                         }
                     @:</table>
                     <p> &nbsp;</p>
+                    <p>
+                        Forecast voor de laatste maand (@Html.DisplayFor(modelItem => item.LastMonthName)):
+                        <span class="sy-use">
+                            @Html.DisplayFor(modelItem => item.LastMonthForecast)
+                            @Html.HiddenFor(modelItem => item.LastMonthLevel, new { @class = "sy-level" })
+                        </span>
+                        @Html.DisplayFor(modelItem => item.Eenheid)
+                    </p>
                     <p> &nbsp;</p>
-
-                    if (item.DeviceType == "gas")
-                    {
-                        <h2 class="smp-title" id="gas">
-                            @Html.DisplayFor(modelItem => item.DeviceType)
-                            - Meterstanden per eerste van elke maand
-                        </h2>
-                    }
-                    else
-                    {
-                        <h2 class="smp-title" id="stroom">
-                            @Html.DisplayFor(modelItem => item.DeviceType)
-                            - Meterstanden per eerste van elke maand
-                        </h2>
-                    }
+                    <h2 class="smp-title">
+                        @Html.DisplayFor(modelItem => item.ReportType)
+                        - Meterstanden per eerste van elke maand
+                    </h2>                    
                     @:<table class="sy-dagrpt">
                         var j = 0;
                         foreach (var item2 in item.Meterstanden)

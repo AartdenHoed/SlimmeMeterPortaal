@@ -186,9 +186,6 @@ h2, h3 {
     padding-left: 25px;
     white-space: nowrap;
 }
-.smp-title::first-letter {
-    text-transform: uppercase;
-}
 .smp-inc {
     visibility: hidden;
 }

@@ -6,7 +6,7 @@
         <li class="smp-skip">&nbsp;</li>
         <li><a href="#top">Input velden</a></li>
         <li id="smp-gas"><a href="#gas">Gas rapport</a></li>
-        <li id="smp-stroom"> <a href="#stroom">Elektriciteit rapport</a></li>
+        <li id="smp-stroom"> <a href="#elektriciteit">Elektriciteit rapport</a></li>
     </ul>
 
 </div>
@@ -112,65 +112,55 @@
                 if ((item.ReportDevice) && (item.DagRapport.Count != 0))
                 {
                     <p>&nbsp;</p>
-                    if (item.DeviceType == "gas")
-                    {
-                        <h1 class="smp-title" id="gas">
-                            @Html.DisplayFor(modelItem => item.DeviceType)
-                        </h1>
-                    }
-                    else
-                    {
-                        <h1 class="smp-title" id="stroom">
-                            @Html.DisplayFor(modelItem => item.DeviceType)
-                        </h1>
-                    }
+                    <h1 id="@(item.DeviceType)">@Html.DisplayFor(modelItem => item.ReportType)</h1>
+
                     @:<table class="sy-dagrpt">
                         var i = 0;
                         foreach (var item2 in item.DagRapport)
                         {
                             if (i == 0)
                             {
-                          <tr>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.N)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Min)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Mean)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Max)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Label)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Eenheid)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Dag1)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Dag2)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Dag3)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Dag4)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Dag5)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Dag6)
-                              </th>
-                              <th>
-                                  @Html.DisplayFor(modelItem => item2.Dag7)
-                              </th>
-                          </tr>
+                                <tr>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.N)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Min)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Mean)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Max)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Label)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Eenheid)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Dag1)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Dag2)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Dag3)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Dag4)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Dag5)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Dag6)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayFor(modelItem => item2.Dag7)
+                                    </th>
+                                </tr>
                                 {
                                     <tr style="border-bottom:5px solid black">
                                         <td colspan=12></td>
@@ -179,54 +169,54 @@
                             }
                             else
                             {
-                      <tr>
-                          <td>
-                              @Html.DisplayFor(modelItem => item2.N)
-                          </td>
-                          <td>
-                              @Html.DisplayFor(modelItem => item2.Min)
-                          </td>
-                          <td>
-                              @Html.DisplayFor(modelItem => item2.Mean)
-                          </td>
-                          <td>
-                              @Html.DisplayFor(modelItem => item2.Max)
-                          </td>
-                          <td>
-                              @Html.DisplayFor(modelItem => item2.Label)
-                          </td>
-                          <td>
-                              @Html.DisplayFor(modelItem => item2.Eenheid)
-                          </td>
-                          <td class="sy-use">
-                              @Html.DisplayFor(modelItem => item2.Dag1)
-                              @Html.HiddenFor(modelItem => item2.Level1, new { @class = "sy-level" })
-                          </td>
-                          <td class="sy-use">
-                              @Html.DisplayFor(modelItem => item2.Dag2)
-                              @Html.HiddenFor(modelItem => item2.Level2, new { @class = "sy-level" })
-                          </td>
-                          <td class="sy-use">
-                              @Html.DisplayFor(modelItem => item2.Dag3)
-                              @Html.HiddenFor(modelItem => item2.Level3, new { @class = "sy-level" })
-                          </td>
-                          <td class="sy-use">
-                              @Html.DisplayFor(modelItem => item2.Dag4)
-                              @Html.HiddenFor(modelItem => item2.Level4, new { @class = "sy-level" })
-                          </td>
-                          <td class="sy-use">
-                              @Html.DisplayFor(modelItem => item2.Dag5)
-                              @Html.HiddenFor(modelItem => item2.Level5, new { @class = "sy-level" })
-                          </td>
-                          <td class="sy-use">
-                              @Html.DisplayFor(modelItem => item2.Dag6)
-                              @Html.HiddenFor(modelItem => item2.Level6, new { @class = "sy-level" })
-                          </td>
-                          <td class="sy-use">
-                              @Html.DisplayFor(modelItem => item2.Dag7)
-                              @Html.HiddenFor(modelItem => item2.Level7, new { @class = "sy-level" })
-                          </td>
-                      </tr>
+                                <tr>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.N)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Min)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Mean)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Max)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Label)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item2.Eenheid)
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Dag1)
+                                        @Html.HiddenFor(modelItem => item2.Level1, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Dag2)
+                                        @Html.HiddenFor(modelItem => item2.Level2, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Dag3)
+                                        @Html.HiddenFor(modelItem => item2.Level3, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Dag4)
+                                        @Html.HiddenFor(modelItem => item2.Level4, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Dag5)
+                                        @Html.HiddenFor(modelItem => item2.Level5, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Dag6)
+                                        @Html.HiddenFor(modelItem => item2.Level6, new { @class = "sy-level" })
+                                    </td>
+                                    <td class="sy-use">
+                                        @Html.DisplayFor(modelItem => item2.Dag7)
+                                        @Html.HiddenFor(modelItem => item2.Level7, new { @class = "sy-level" })
+                                    </td>
+                                </tr>
                             }
                             if (i == 24)
                             {
