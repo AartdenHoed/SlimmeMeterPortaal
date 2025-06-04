@@ -11,6 +11,14 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Ajax.Utilities;
 using System.Security.Cryptography.X509Certificates;
+using System.Management.Automation.Runspaces;
+using static System.Net.Mime.MediaTypeNames;
+using System.Reflection;
+using System.Diagnostics;
+using Newtonsoft.Json.Linq;
+using System.Web.Helpers;
+using System.Collections.ObjectModel;
+using System.Management.Automation;
 
 namespace SlimmeMeterPortaal.ViewModels
 {
@@ -44,12 +52,28 @@ namespace SlimmeMeterPortaal.ViewModels
         {
             get
             {
-                StreamReader sr = new StreamReader("O:\\ADHC Output\\SlimmeMeterPortaal\\SlimmeMeterPortaal.api");
-                //Read the first line of text
-                string line = sr.ReadLine();
+                RunspaceConfiguration runspaceConfiguration = RunspaceConfiguration.Create();
+
+                Runspace runspace = RunspaceFactory.CreateRunspace(runspaceConfiguration);
+                runspace.Open();
+
+                Pipeline pipeline = runspace.CreatePipeline();
+
+                //RUN FIXED INITVAR from production
                 
-                sr.Close();
-                return (line.TrimEnd());
+                Command myCommand = new Command("C:\\ADHC\\Powershell\\INITVAR.PS1");
+                CommandParameter testParam = new CommandParameter("MODE", "JSON");
+                myCommand.Parameters.Add(testParam);
+
+                pipeline.Commands.Add(myCommand);
+
+                // Execute PowerShell script
+                Collection<PSObject> resultobj = pipeline.Invoke();
+
+                string json = resultobj[0].ToString();
+                string apikey = JObject.Parse(json)["ADHC_SMPapikey"].ToString();   
+
+                return (apikey);
 
             }
         }
