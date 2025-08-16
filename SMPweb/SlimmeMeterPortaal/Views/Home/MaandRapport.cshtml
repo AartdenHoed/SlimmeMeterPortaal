@@ -65,19 +65,72 @@
                     }
                 }
             </table>
+            <div class="sy-stats">
+                <hr />
+                <h5>API Call Statistieken</h5>
+                <table class="sy-dagrpt">
+                    @if (Model.Devicelijst != null)
+                    {
+                        var i = 0;
 
+                        foreach (var item in Model.Devicelijst)
+                        {
+                            if (i == 0)
+                            {
+                                <tr>
+                                    <th>@Html.DisplayNameFor(modelItem => item.DeviceType)</th>
+                                    <th>@Html.DisplayNameFor(modelItem => item.Total_API_Calls)</th>
+                                    <th>
+                                        @Html.DisplayNameFor(modelItem => item.Total_API_Calls_Success)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(modelItem => item.Total_API_Calls_Retried)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(modelItem => item.Total_Retries)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(modelItem => item.Total_API_Calls_Failed)
+                                    </th>
+                                </tr>
+                            }
+                            i = i + 1;
+                            <tr>
+                                <td>@Html.DisplayFor(modelItem => item.DeviceType)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Total_API_Calls)</td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Total_API_Calls_Success)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Total_API_Calls_Retried)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Total_Retries)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Total_API_Calls_Failed)
+                                </td>
+
+                            </tr>
+
+                        }
+                    }
+                </table>
+            </div>
+            <hr />
+            <p>&nbsp;</p>
             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-        <dl class="sy-dl">
+            <dl class="sy-dl">
 
-            <dt class="sy-dt">
-                @Html.LabelFor(model => model.ReferentieJaren)
-            </dt>
-            <dd class="sy-dd">
-                @Html.EditorFor(model => model.ReferentieJaren, new { htmlAttributes = new { @class = "sy-input40" } })
-                @Html.ValidationMessageFor(model => model.ReferentieJaren, "", new { @class = "text-danger" })
-            </dd>
+                <dt class="sy-dt">
+                    @Html.LabelFor(model => model.ReferentieJaren)
+                </dt>
+                <dd class="sy-dd">
+                    @Html.EditorFor(model => model.ReferentieJaren, new { htmlAttributes = new { @class = "sy-input40" } })
+                    @Html.ValidationMessageFor(model => model.ReferentieJaren, "", new { @class = "text-danger" })
+                </dd>
 
-        </dl>
+            </dl>
             <div class="smp-inc">
                 @Html.EditorFor(model => model.IncludeGas)
                 @Html.EditorFor(model => model.IncludeStroom)
@@ -85,7 +138,7 @@
 
             <div class="form-group">
                 <div class="col-md-offset-2 col-md-10">
-                    <input type="submit" formaction="/Home/MaandRapport" value="Refresh" class="sy-button" />                    
+                    <input type="submit" formaction="/Home/MaandRapport" value="Refresh" class="sy-button" />
                 </div>
             </div>
         </div>

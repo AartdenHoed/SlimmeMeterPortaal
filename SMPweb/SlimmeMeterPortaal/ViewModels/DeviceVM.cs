@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Management;
@@ -113,6 +114,14 @@ namespace SlimmeMeterPortaal.ViewModels
             } 
         }
 
+        // API call statistics
+        public int Total_API_Calls = 0;
+        public int Total_API_Calls_Success = 0;
+        public int Total_API_Calls_Retried = 0;
+        public int Total_API_Calls_Failed = 0;
+        public int Total_Retries = 0;
+
+
         public List<RPT_line> DagRapport = new List<RPT_line>();
         public class RPT_line
         {
@@ -190,23 +199,62 @@ namespace SlimmeMeterPortaal.ViewModels
             public string Maand12 { get; set; }
         }
 
-            public async Task<string> GetSMPday(string datestring, string apikey, string listtype)
+        public async Task<string> GetSMPday(string datestring, string apikey, string listtype)
         {
             string url = "https://app.slimmemeterportal.nl/userapi/v1/connections/" + this.DeviceID.Trim() + "/usage/" + datestring;
 
-            HttpClient httpClient = new HttpClient();
-            HttpRequestMessage request = new HttpRequestMessage
+            int retrycount = 0;
+            string result;
+            var responseString = "";
+            do
             {
-                RequestUri = new Uri(url),
-                Method = HttpMethod.Get
-            };
-            request.Properties.Add("Content-Type", "application/json");
-            request.Headers.Add("API-key", apikey);
-            HttpResponseMessage response = await httpClient.SendAsync(request);
+                HttpClient httpClient = new HttpClient();
+                HttpRequestMessage request = new HttpRequestMessage
+                {
+                    RequestUri = new Uri(url),
+                    Method = HttpMethod.Get
+                };
+                request.Properties.Add("Content-Type", "application/json");
+                request.Headers.Add("API-key", apikey);
+                HttpResponseMessage response = await httpClient.SendAsync(request);
+                if (response.IsSuccessStatusCode)
+                {
+                    result = "Ok";                    
+                    responseString = await response.Content.ReadAsStringAsync();
+                }
+                else
+                {                    
+                    result = "Nok";
+                    retrycount += 1;
+                    Thread.Sleep(5000);
+                }                  
+                
+            }
+            while ((result != "Ok") && (retrycount < 10));
 
-            if (response.IsSuccessStatusCode)
+            // Statistics
+            this.Total_API_Calls += 1;
+            if (result == "Ok")
             {
-                var responseString = await response.Content.ReadAsStringAsync();
+                if (retrycount == 0)
+                {
+                    this.Total_API_Calls_Success += 1;
+                }
+                else
+                {
+                    this.Total_API_Calls_Retried += 1;
+                    this.Total_Retries += retrycount; 
+                }
+
+            }
+            else
+            {
+                Total_API_Calls_Failed += 1;
+                this.Total_Retries += retrycount;
+            }
+            
+            if (result == "Ok")
+            {                
                 // Parse the response body
 
                 switch (this.DeviceType)
@@ -257,12 +305,9 @@ namespace SlimmeMeterPortaal.ViewModels
                         throw new Exception("Unknown device type " + this.DeviceType);
 
                 }
-                return "Ok";
+                
             }
-            else
-            {
-                return "Nok";
-            }
+            return result;
 
 
         }       
@@ -721,16 +766,11 @@ namespace SlimmeMeterPortaal.ViewModels
                     datestring = DateTime.Now.AddDays(-2).ToString("dd-MM-yyyy");
                     this.LastMonthDate = datestring;
                     last = true;
-                }
-
+                }                
+               
                 Task<string> longRunningTask = this.GetSMPday(datestring, apikey, "Month");
                 string result = await longRunningTask;
-
-                if (result != "Ok")
-                {
-                    throw new Exception("Function GetSMPday failed");
-
-                }
+                 
                 if (last) { break; }
             }
             return "Ok";

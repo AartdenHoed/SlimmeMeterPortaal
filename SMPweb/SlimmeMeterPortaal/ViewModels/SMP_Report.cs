@@ -1,24 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel;
-using System.Linq;
-using System.Web;
-using System.IO;
+﻿using Microsoft.Ajax.Utilities;
 using Newtonsoft.Json;
-using SlimmeMeterPortaal.ViewModels;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Microsoft.Ajax.Utilities;
-using System.Security.Cryptography.X509Certificates;
-using System.Management.Automation.Runspaces;
-using static System.Net.Mime.MediaTypeNames;
-using System.Reflection;
-using System.Diagnostics;
 using Newtonsoft.Json.Linq;
-using System.Web.Helpers;
+using SlimmeMeterPortaal.ViewModels;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Management.Automation;
+using System.Management.Automation.Runspaces;
+using System.Net.Http;
+using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Helpers;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace SlimmeMeterPortaal.ViewModels
 {
@@ -79,61 +80,68 @@ namespace SlimmeMeterPortaal.ViewModels
         }
         
         public async Task<string> GetMeters()
-        {
-
-            //#$strdate = "14-01-2024"
-            //#$meterid = "871689290200620802"
-            //$url = "https://app.slimmemeterportal.nl/userapi/v1/connections/" + $meterID + "/usage/" + $strdate
-
-            HttpClient httpClient = new HttpClient();
-            HttpRequestMessage request = new HttpRequestMessage
-            {
-                RequestUri = new Uri(this.URL),
-                Method = HttpMethod.Get
-            };
-            //httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            request.Properties.Add("Content-Type", "application/json");
-            request.Headers.Add("API-key", this.APIkey);
-            HttpResponseMessage response = await httpClient.SendAsync(request);            
-            
-            if (response.IsSuccessStatusCode)
-            {
-                var responseString = await response.Content.ReadAsStringAsync();
-                // Parse the response body
-                var meterlist = JsonConvert.DeserializeObject<List<Meter>>(responseString);
-
-                foreach (Meter m in meterlist)
-                {
-                    DeviceVM dv = new DeviceVM (m.connection_type,this.IncludeGas, this.IncludeStroom)
-                    {
-                        Startdate = DateTime.ParseExact(m.start_date, "dd-MM-yyyy", null),
-                        DeviceID = m.meter_identifier
-                    };
-                    if (!string.IsNullOrEmpty(m.end_date))
-                    {
-                        dv.Enddate = DateTime.ParseExact(m.end_date, "dd-MM-yyyy", null);
-                    }
-                    else
-                    {
-                        dv.Enddate = DateTime.MaxValue;
-                    }  
-                    this.Devicelijst.Add(dv);
-                }
-
-            }
-            else
-            {
-                this.Message.Tekst = response.StatusCode.ToString() + " ---> " + response.ReasonPhrase;
-                this.Message.Level = this.Message.Error;
+        {           
+            int retrycount = 0;
+            string result = "Nok";
+            do { 
                 
-            }
-            request.Dispose();
-            response.Dispose();
-            httpClient.Dispose();
-            return "Ok";
+
+                //#$strdate = "14-01-2024"
+                //#$meterid = "871689290200620802"
+                //$url = "https://app.slimmemeterportal.nl/userapi/v1/connections/" + $meterID + "/usage/" + $strdate
+
+                HttpClient httpClient = new HttpClient();
+                HttpRequestMessage request = new HttpRequestMessage
+                {
+                    RequestUri = new Uri(this.URL),
+                    Method = HttpMethod.Get
+                };
+                //httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                request.Properties.Add("Content-Type", "application/json");
+                request.Headers.Add("API-key", this.APIkey);
+
+                HttpResponseMessage response = await httpClient.SendAsync(request);
+                if (!response.IsSuccessStatusCode)  
+                {
+                    this.Message.Tekst = response.StatusCode.ToString() + " ---> " + response.ReasonPhrase;
+                    this.Message.Level = this.Message.Error;
+                    retrycount += 1;
+                    Thread.Sleep(5000);
+                }
+                else
+                {
+                    result = "Ok";
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    // Parse the response body
+                    var meterlist = JsonConvert.DeserializeObject<List<Meter>>(responseString);
+
+                    foreach (Meter m in meterlist)
+                    {
+                        DeviceVM dv = new DeviceVM(m.connection_type, this.IncludeGas, this.IncludeStroom)
+                        {
+                            Startdate = DateTime.ParseExact(m.start_date, "dd-MM-yyyy", null),
+                            DeviceID = m.meter_identifier
+                        };
+                        if (!string.IsNullOrEmpty(m.end_date))
+                        {
+                            dv.Enddate = DateTime.ParseExact(m.end_date, "dd-MM-yyyy", null);
+                        }
+                        else
+                        {
+                            dv.Enddate = DateTime.MaxValue;
+                        }
+                        this.Devicelijst.Add(dv);
+                    }
+                    request.Dispose();
+                    response.Dispose();
+                    httpClient.Dispose();
+                }
+            } while ((result != "Ok") && (retrycount< 10));
+              
+            return result;
         }
         public async Task<string> GetUsage()
-        {
+        {            
             foreach (DeviceVM dvm in this.Devicelijst)
             {
                 if (!dvm.ReportDevice) { continue; }
@@ -145,11 +153,6 @@ namespace SlimmeMeterPortaal.ViewModels
                     Task<string> longRunningTask = dvm.GetSMPday(datestring, this.APIkey, "Usage");
                     string result = await longRunningTask;
 
-                    if (result != "Ok")
-                    {
-                        throw new Exception("Function GetSMPday failed");
-
-                    }
                 }
 
             }
@@ -167,17 +170,15 @@ namespace SlimmeMeterPortaal.ViewModels
                     int two = 2;
                     int daymin = -1 * (this.ReferentieDagen - 1) / two;
                     int daymax = daymin + this.ReferentieDagen;
+                    
                     for (int day = daymin; day < daymax; day++)
                     {
                         DateTime entrydate = this.Rapportagedatum.AddYears(year).AddDays(day);
                         string datestring = entrydate.ToString("dd-MM-yyyy");
-                        Task<string> longRunningTask = dvm.GetSMPday(datestring, this.APIkey,"Reference");
+                                   
+                        Task<string> longRunningTask = dvm.GetSMPday(datestring, this.APIkey, "Reference");
                         string result = await longRunningTask;
-                        if (result != "Ok")
-                        {
-                            throw new Exception("Function GetSMPday failed");
-
-                        }
+                        
                     }
                 }
             }
@@ -236,12 +237,7 @@ namespace SlimmeMeterPortaal.ViewModels
                     DateTime entrydate = this.Rapportagedatum.AddDays(i);
                     Task<string> longRunningTask = dvm.GetSMPmonth(i, this.APIkey);
                     string result = await longRunningTask;
-
-                    if (result != "Ok")
-                    {
-                        throw new Exception("Function GetSMPmonth failed");
-
-                    }
+                                      
                 }
 
             }
