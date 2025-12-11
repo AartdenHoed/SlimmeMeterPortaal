@@ -5,6 +5,7 @@ using SlimmeMeterPortaal.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
@@ -13,16 +14,19 @@ using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Helpers;
+using System.Web.Services.Description;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace SlimmeMeterPortaal.ViewModels
 {
+   
     public class SMP_Report
 
     {
@@ -47,8 +51,12 @@ namespace SlimmeMeterPortaal.ViewModels
         public string URL = "https://app.slimmemeterportal.nl/userapi/v1/connections";
 
         public string IncludeStroom { get; set; }
-        public string IncludeGas { get; set; } 
-       
+        public string IncludeGas { get; set; }
+               
+        public string SMP_Guid { get; set; }
+
+        public DateTime Timestamp { get; set; }
+         
         public string APIkey
         {
             get
@@ -78,7 +86,40 @@ namespace SlimmeMeterPortaal.ViewModels
 
             }
         }
-        
+
+        public void CleanDB(SlimmeMeterPortaalEntities db)
+        {
+            DateTime now = DateTime.Now.AddDays(-1);
+
+            try
+            {
+                var query = from progressbar in db.ProgressBars
+                            where progressbar.Timestamp < now
+                            select progressbar;
+                List < ProgressBar > Oldbars = query.ToList();
+
+                if (Oldbars.Count > 0)
+                {
+                    foreach (ProgressBar pb in Oldbars)
+                    {
+                        db.ProgressBars.Remove(pb);
+
+                    }
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception e)
+            {
+                this.Message.Tekst = e.Message;
+                this.Message.Level = this.Message.Error;
+
+            }        
+           
+            
+            return;
+        }
+
+
         public async Task<string> GetMeters()
         {           
             int retrycount = 0;
@@ -99,7 +140,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 //httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 request.Properties.Add("Content-Type", "application/json");
                 request.Headers.Add("API-key", this.APIkey);
-
+               
                 HttpResponseMessage response = await httpClient.SendAsync(request);
                 if (!response.IsSuccessStatusCode)  
                 {
@@ -136,37 +177,39 @@ namespace SlimmeMeterPortaal.ViewModels
                     response.Dispose();
                     httpClient.Dispose();
                 }
-            } while ((result != "Ok") && (retrycount< 10));
+            } while ((result != "Ok") && (retrycount < 10));
               
             return result;
         }
         public async Task<string> GetUsage()
-        {            
+        {
+            string result = "Nok";
             foreach (DeviceVM dvm in this.Devicelijst)
             {
                 if (!dvm.ReportDevice) { continue; }
-                DateTime reportDate = this.Rapportagedatum;
+                
                 for (int i = -6; i <= 0; i++)
                 {
                     DateTime entrydate = this.Rapportagedatum.AddDays(i);
                     string datestring = entrydate.ToString("dd-MM-yyyy");
                     Task<string> longRunningTask = dvm.GetSMPday(datestring, this.APIkey, "Usage");
-                    string result = await longRunningTask;
+                    result = await longRunningTask;
 
                 }
 
             }
-            return "Ok";
+            return result;
         }
 
         public async Task<string> GetReference()
         {
+            string result = "Nok";
             foreach (DeviceVM dvm in this.Devicelijst)
             {
                 if (!dvm.ReportDevice) { continue; }
                 for (int year = -1 * this.ReferentieJaren; year < 0; year++)
                 {
-                    DateTime refdate = this.Rapportagedatum.AddYears(year);
+                    
                     int two = 2;
                     int daymin = -1 * (this.ReferentieDagen - 1) / two;
                     int daymax = daymin + this.ReferentieDagen;
@@ -177,12 +220,12 @@ namespace SlimmeMeterPortaal.ViewModels
                         string datestring = entrydate.ToString("dd-MM-yyyy");
                                    
                         Task<string> longRunningTask = dvm.GetSMPday(datestring, this.APIkey, "Reference");
-                        string result = await longRunningTask;
+                        result = await longRunningTask;
                         
                     }
                 }
             }
-            return "Ok";
+            return result;
         }
 
         public void Consolidate()
@@ -227,6 +270,7 @@ namespace SlimmeMeterPortaal.ViewModels
 
         public async Task<string> GetMonthUsage()
         {
+            string result = "Nok";
             foreach (DeviceVM dvm in this.Devicelijst)
             {
                 if (!dvm.ReportDevice) { continue; }
@@ -234,14 +278,14 @@ namespace SlimmeMeterPortaal.ViewModels
                 int currentYear = DateTime.Now.Year;
                 for (int i = firstYear; i <= currentYear; i++)
                 {
-                    DateTime entrydate = this.Rapportagedatum.AddDays(i);
+                    
                     Task<string> longRunningTask = dvm.GetSMPmonth(i, this.APIkey);
-                    string result = await longRunningTask;
+                    result = await longRunningTask;
                                       
                 }
 
             }
-            return "Ok";
+            return result;
         }
 
         public void GetMaandCijfers()       

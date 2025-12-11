@@ -4,7 +4,7 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="SlimmeMeterPortaalModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+    <Schema Namespace="SlimmeMeterPortaalModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityType Name="Device">
           <Key>
             <PropertyRef Name="DeviceID" />
@@ -36,6 +36,22 @@
           <Property Name="LeveringJaar" Type="int" Nullable="false" />
           <Property Name="Aantalmetingen" Type="int" Nullable="false" />
         </EntityType>
+        <EntityType Name="ProgressBar">
+          <Key>
+            <PropertyRef Name="DeviceID" />
+          </Key>
+          <Property Name="DeviceID" Type="char" MaxLength="24" Nullable="false" />
+          <Property Name="Guid" Type="char" MaxLength="64" Nullable="false" />
+          <Property Name="Timestamp" Type="datetime" Nullable="false" />
+          <Property Name="APIcallsTODO" Type="int" Nullable="false" />
+          <Property Name="APIcallsDONE" Type="int" Nullable="false" />
+          <Property Name="Progress" Type="decimal" Precision="18" Scale="0" />
+          <Property Name="Message01" Type="char" MaxLength="256" />
+          <Property Name="Message02" Type="char" MaxLength="256" />
+          <Property Name="Message03" Type="char" MaxLength="256" />
+          <Property Name="Message04" Type="char" MaxLength="256" />
+          <Property Name="Message05" Type="char" MaxLength="256" />
+        </EntityType>
         <Association Name="FK_Measurement_Device">
           <End Role="Device" Type="Self.Device" Multiplicity="1" />
           <End Role="Measurement" Type="Self.Measurement" Multiplicity="*" />
@@ -48,16 +64,34 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_ProgressBar_Device">
+          <End Role="Device" Type="Self.Device" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ProgressBar" Type="Self.ProgressBar" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Device">
+              <PropertyRef Name="DeviceID" />
+            </Principal>
+            <Dependent Role="ProgressBar">
+              <PropertyRef Name="DeviceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <EntityContainer Name="SlimmeMeterPortaalModelStoreContainer">
           <EntitySet Name="Device" EntityType="Self.Device" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Measurement" EntityType="Self.Measurement" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ProgressBar" EntityType="Self.ProgressBar" Schema="dbo" store:Type="Tables" />
           <AssociationSet Name="FK_Measurement_Device" Association="Self.FK_Measurement_Device">
             <End Role="Device" EntitySet="Device" />
             <End Role="Measurement" EntitySet="Measurement" />
           </AssociationSet>
+          <AssociationSet Name="FK_ProgressBar_Device" Association="Self.FK_ProgressBar_Device">
+            <End Role="Device" EntitySet="Device" />
+            <End Role="ProgressBar" EntitySet="ProgressBar" />
+          </AssociationSet>
         </EntityContainer>
-      </Schema>
-    </edmx:StorageModels>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="SlimmeMeterPortaalModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
@@ -70,6 +104,7 @@
           <Property Name="Startdate" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="Enddate" Type="DateTime" Precision="3" />
           <NavigationProperty Name="Measurements" Relationship="Self.FK_Measurement_Device" FromRole="Device" ToRole="Measurement" />
+          <NavigationProperty Name="ProgressBar" Relationship="SlimmeMeterPortaalModel.FK_ProgressBar_Device" FromRole="Device" ToRole="ProgressBar" />
         </EntityType>
         <EntityType Name="Measurement">
           <Key>
@@ -113,7 +148,43 @@
             <End Role="Device" EntitySet="Devices" />
             <End Role="Measurement" EntitySet="Measurements" />
           </AssociationSet>
+          <EntitySet Name="ProgressBars" EntityType="SlimmeMeterPortaalModel.ProgressBar" />
+          <AssociationSet Name="FK_ProgressBar_Device" Association="SlimmeMeterPortaalModel.FK_ProgressBar_Device">
+            <End Role="Device" EntitySet="Devices" />
+            <End Role="ProgressBar" EntitySet="ProgressBars" />
+          </AssociationSet>
         </EntityContainer>
+        <EntityType Name="ProgressBar">
+          <Key>
+            <PropertyRef Name="DeviceID" />
+          </Key>
+          <Property Name="DeviceID" Type="String" Nullable="false" MaxLength="24" FixedLength="true" Unicode="false" />
+          <Property Name="APIcallsTODO" Type="Int32" Nullable="false" />
+          <Property Name="APIcallsDONE" Type="Int32" Nullable="false" />
+          <Property Name="Progress" Type="Decimal" Precision="18" Scale="0" />
+          <Property Name="Message01" Type="String" MaxLength="256" FixedLength="true" Unicode="false" />
+          <Property Name="Message02" Type="String" MaxLength="256" FixedLength="true" Unicode="false" />
+          <Property Name="Message03" Type="String" MaxLength="256" FixedLength="true" Unicode="false" />
+          <Property Name="Message04" Type="String" MaxLength="256" FixedLength="true" Unicode="false" />
+          <Property Name="Message05" Type="String" MaxLength="256" FixedLength="true" Unicode="false" />
+          <NavigationProperty Name="Device" Relationship="SlimmeMeterPortaalModel.FK_ProgressBar_Device" FromRole="ProgressBar" ToRole="Device" />
+          <Property Name="Guid" Type="String" Nullable="false" MaxLength="64" FixedLength="true" Unicode="false" />
+          <Property Name="Timestamp" Type="DateTime" Nullable="false" Precision="3" />
+        </EntityType>
+        <Association Name="FK_ProgressBar_Device">
+          <End Type="SlimmeMeterPortaalModel.Device" Role="Device" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="SlimmeMeterPortaalModel.ProgressBar" Role="ProgressBar" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Device">
+              <PropertyRef Name="DeviceID" />
+            </Principal>
+            <Dependent Role="ProgressBar">
+              <PropertyRef Name="DeviceID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -146,6 +217,23 @@
                 <ScalarProperty Name="LeveringMaand" ColumnName="LeveringMaand" />
                 <ScalarProperty Name="LeveringJaar" ColumnName="LeveringJaar" />
                 <ScalarProperty Name="Aantalmetingen" ColumnName="Aantalmetingen" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ProgressBars">
+            <EntityTypeMapping TypeName="SlimmeMeterPortaalModel.ProgressBar">
+              <MappingFragment StoreEntitySet="ProgressBar">
+                <ScalarProperty Name="Timestamp" ColumnName="Timestamp" />
+                <ScalarProperty Name="Guid" ColumnName="Guid" />
+                <ScalarProperty Name="Message05" ColumnName="Message05" />
+                <ScalarProperty Name="Message04" ColumnName="Message04" />
+                <ScalarProperty Name="Message03" ColumnName="Message03" />
+                <ScalarProperty Name="Message02" ColumnName="Message02" />
+                <ScalarProperty Name="Message01" ColumnName="Message01" />
+                <ScalarProperty Name="Progress" ColumnName="Progress" />
+                <ScalarProperty Name="APIcallsDONE" ColumnName="APIcallsDONE" />
+                <ScalarProperty Name="APIcallsTODO" ColumnName="APIcallsTODO" />
+                <ScalarProperty Name="DeviceID" ColumnName="DeviceID" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

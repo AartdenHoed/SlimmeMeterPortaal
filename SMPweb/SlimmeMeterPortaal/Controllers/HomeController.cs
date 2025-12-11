@@ -12,18 +12,36 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Net;
 using System.Web.UI.WebControls;
+using Microsoft.AspNetCore.Http;
 
 namespace SlimmeMeterPortaal.Controllers
 {
-    public class HomeController : Controller
-    {
+    public class HomeController : Controller    {
+
+        private readonly SlimmeMeterPortaalEntities db = new SlimmeMeterPortaalEntities();
+        
         public async Task<ActionResult> Index()
         {
             SMP_Report SMP_report = new SMP_Report
             {
                 IncludeGas = "Y",
-                IncludeStroom = "Y"
+                IncludeStroom = "Y",
+                SMP_Guid = Guid.NewGuid().ToString(),
+                Timestamp = DateTime.Now
             };
+            SMP_report.CleanDB(db);
+                       
+            // Fetch cookie value for input fields, if any
+            HttpCookie inputyearsCookie = Request.Cookies["InputYears"];
+            if (inputyearsCookie != null)
+            {
+                SMP_report.ReferentieJaren = Int32.Parse(inputyearsCookie.Value);
+            }
+            HttpCookie inputdaysCookie = Request.Cookies["InputDays"];
+            if (inputdaysCookie != null)
+            {
+                SMP_report.ReferentieDagen = Int32.Parse(inputdaysCookie.Value);
+            }
 
             string title = "Dagrapportage";
             string lvl = SMP_report.Message.Info;
@@ -35,8 +53,7 @@ namespace SlimmeMeterPortaal.Controllers
 
             if (result != "Ok")
             {
-                lvl = SMP_report.Message.Error;
-                msg = "AWAIT failed rc = " + result.ToString();
+                throw new Exception("AWAIT failed rc = " + result.ToString());
             }
             SMP_report.Message.Fill(title, lvl, msg);
 
@@ -50,8 +67,18 @@ namespace SlimmeMeterPortaal.Controllers
             SMP_Report SMP_report = new SMP_Report
             {
                 IncludeGas = "Y",
-                IncludeStroom = "Y"
+                IncludeStroom = "Y",
+                SMP_Guid = Guid.NewGuid().ToString(),
+                Timestamp = DateTime.Now
             };
+            SMP_report.CleanDB(db);
+
+            // Fetch cookie value for input fields, if any
+            HttpCookie inputyearsCookie = Request.Cookies["InputYears"];
+            if (inputyearsCookie != null)
+            {
+                SMP_report.ReferentieJaren = Int32.Parse(inputyearsCookie.Value);
+            }
 
             string title = "Maandrapportage";
             string lvl = SMP_report.Message.Info;
@@ -63,8 +90,7 @@ namespace SlimmeMeterPortaal.Controllers
 
             if (result != "Ok")
             {
-                lvl = SMP_report.Message.Error;
-                msg = "AWAIT failed rc = " + result.ToString();
+               throw new Exception("AWAIT failed rc = " + result.ToString());
             }
             SMP_report.Message.Fill(title, lvl, msg);
 
@@ -78,6 +104,21 @@ namespace SlimmeMeterPortaal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DagRapport(SMP_Report SMP_report)
         {
+           
+            // Set cookie values according to input screen
+            HttpCookie inputdaysCookie = new HttpCookie("InputDays");
+            inputdaysCookie.Value = SMP_report.ReferentieDagen.ToString();
+            inputdaysCookie.HttpOnly = true;
+            inputdaysCookie.Path = "/";
+            inputdaysCookie.Expires = DateTime.Now.AddDays(366);
+            HttpCookie inputyearsCookie = new HttpCookie("InputYears");
+            inputyearsCookie.Value = SMP_report.ReferentieJaren.ToString();
+            inputyearsCookie.HttpOnly = true;
+            inputyearsCookie.Path = "/";
+            inputyearsCookie.Expires = DateTime.Now.AddDays(366);
+            Response.Cookies.Add(inputdaysCookie);
+            Response.Cookies.Add(inputyearsCookie);
+
             string title = "Dagrapportage";
             string lvl = SMP_report.Message.Info;
             string msg = "Gebruik de knoppen links, of scroll naar beneden om de gevraagde rapportages te zien";
@@ -129,6 +170,15 @@ namespace SlimmeMeterPortaal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> MaandRapport(SMP_Report SMP_report)
         {
+            // Set cookie values according to input screen
+            
+            HttpCookie inputyearsCookie = new HttpCookie("InputYears");
+            inputyearsCookie.Value = SMP_report.ReferentieJaren.ToString();
+            inputyearsCookie.HttpOnly = true;
+            inputyearsCookie.Path = "/";
+            inputyearsCookie.Expires = DateTime.Now.AddDays(366);           
+            Response.Cookies.Add(inputyearsCookie);
+
             string title = "Maandrapportage";
             string lvl = SMP_report.Message.Info;
             string msg = "Gebruik de knoppen links, of scroll naar beneden om de gevraagde rapportages te zien";

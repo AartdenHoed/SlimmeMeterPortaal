@@ -27,5 +27,6 @@ namespace SlimmeMeterPortaal
     
         public virtual DbSet<Device> Devices { get; set; }
         public virtual DbSet<Measurement> Measurements { get; set; }
+        public virtual DbSet<ProgressBar> ProgressBars { get; set; }
     }
 }

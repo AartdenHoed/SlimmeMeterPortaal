@@ -115,11 +115,11 @@ namespace SlimmeMeterPortaal.ViewModels
         }
 
         // API call statistics
-        public int Total_API_Calls = 0;
-        public int Total_API_Calls_Success = 0;
-        public int Total_API_Calls_Retried = 0;
-        public int Total_API_Calls_Failed = 0;
-        public int Total_Retries = 0;
+        public int Total_API_Calls { get; set; } = 0;
+        public int Total_API_Calls_Success { get; set; } = 0;
+        public int Total_API_Calls_Retried { get; set; } = 0;
+        public int Total_API_Calls_Failed { get; set; } = 0;
+        public int Total_Retries { get; set; } = 0;
 
 
         public List<RPT_line> DagRapport = new List<RPT_line>();
@@ -226,7 +226,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 {                    
                     result = "Nok";
                     retrycount += 1;
-                    Thread.Sleep(5000);
+                    Thread.Sleep(10000);
                 }                  
                 
             }

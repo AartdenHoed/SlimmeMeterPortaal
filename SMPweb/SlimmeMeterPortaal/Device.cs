@@ -27,5 +27,6 @@ namespace SlimmeMeterPortaal
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Measurement> Measurements { get; set; }
+        public virtual ProgressBar ProgressBar { get; set; }
     }
 }
