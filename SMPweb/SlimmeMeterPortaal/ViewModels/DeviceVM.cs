@@ -756,22 +756,28 @@ namespace SlimmeMeterPortaal.ViewModels
         public async Task<string> GetSMPmonth(int year, string apikey)
         {
             string datestring;
-            bool last = false;
+            
             for (int mo = 1; mo <= 12; mo++)
             {
-                datestring = "01-" + mo.ToString("D2") + "-" + year.ToString("D4");                
-                
-                DateTime testdate = DateTime.ParseExact(datestring, "dd-MM-yyyy", null);
-                if (testdate > DateTime.Now.AddDays(-2)) { 
-                    datestring = DateTime.Now.AddDays(-2).ToString("dd-MM-yyyy");
-                    this.LastMonthDate = datestring;
-                    last = true;
-                }                
-               
+                datestring = "01-" + mo.ToString("D2") + "-" + year.ToString("D4");
+
                 Task<string> longRunningTask = this.GetSMPday(datestring, apikey, "Month");
                 string result = await longRunningTask;
-                 
-                if (last) { break; }
+
+                DateTime present = DateTime.Now;
+                if ((present.Year == year) && (present.Month == mo)) { 
+                    // Check if we can report the last (incomplete) month which we can if it is the 4th or later
+                    if (present.Day >= 3) 
+                    {
+                        datestring = present.AddDays(-2).ToString("dd-MM-yyyy");
+                        this.LastMonthDate = datestring;
+                        Task<string> longRunningTask2 = this.GetSMPday(datestring, apikey, "Month");
+                        string result2 = await longRunningTask2;
+                        
+                    }
+                    // this was the last date to proces
+                    break;
+                }               
             }
             return "Ok";
 
@@ -785,7 +791,7 @@ namespace SlimmeMeterPortaal.ViewModels
             decimal startreading = 0;
             decimal endreading;
             decimal meterstandtotaal = 0;
-            
+                        
             int startyear = this.MaandGasMetingen[0].VerbruiksDatum.Year;
             int endyear = DateTime.Now.Year;
 
@@ -840,11 +846,19 @@ namespace SlimmeMeterPortaal.ViewModels
                         decimal dstart = istart;
                         endreading = dstart / 100;
                         decimal monthusage = endreading - startreading;
+
+                        
                         if (GasMetingen.VerbruiksDatum.Day == 1)
                         {
                             maandnr = GasMetingen.VerbruiksDatum.Month - 1;
-                        }                        
-                        if (maandnr == 0) { maandnr = 12; }
+                            if (maandnr == 0) { maandnr = 12; }
+
+                        }
+                        else
+                        {
+                            maandnr = GasMetingen.VerbruiksDatum.Month;
+                            
+                        }     
                         maandlabel = this.MaandArray[maandnr - 1];
                         MaandCijfer maandCijfer = new MaandCijfer
                         {
@@ -983,6 +997,7 @@ namespace SlimmeMeterPortaal.ViewModels
                         {
                             maandnr = StroomMetingen.VerbruiksDatum.Month - 1;
                         }
+                       
                         if (maandnr == 0) { maandnr = 12; }
                         maandlabel = this.MaandArray[maandnr - 1];
                         MaandCijfer maandCijfer = new MaandCijfer
