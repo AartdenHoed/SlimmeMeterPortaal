@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Drawing;
 using System.Linq;
 using System.Net.Http;
@@ -49,6 +50,12 @@ namespace SlimmeMeterPortaal.ViewModels
 
         [DisplayName("Meter type")]
         public string DeviceType { get; set; }
+
+        [DisplayName("Laatste datum met data")]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
+        [DataType(DataType.DateTime)]
+        public DateTime LastDateWithData { get; set; }
+        public DateTime RapportageDatum { get; set; }
 
         public string Eenheid
         {
@@ -268,6 +275,9 @@ namespace SlimmeMeterPortaal.ViewModels
                         };
                         switch (listtype)
                         {
+                            case "Lastdate":
+                                if (gasVerbruik.MetingLijst.usages.Count > 0) { result = "Last"; };
+                                break;
                             case "Usage":
                                 this.UsageGasMetingen.Add(gasVerbruik);
                                 break;
@@ -289,6 +299,9 @@ namespace SlimmeMeterPortaal.ViewModels
                         };
                         switch (listtype)
                         {
+                            case "Lastdate":
+                                if (stroomVerbruik.MetingLijst.usages.Count > 0) { result = "Last"; };
+                                break;
                             case "Usage":
                                 this.UsageStroomMetingen.Add(stroomVerbruik);
                                 break;
@@ -764,12 +777,12 @@ namespace SlimmeMeterPortaal.ViewModels
                 Task<string> longRunningTask = this.GetSMPday(datestring, apikey, "Month");
                 string result = await longRunningTask;
 
-                DateTime present = DateTime.Now;
-                if ((present.Year == year) && (present.Month == mo)) { 
-                    // Check if we can report the last (incomplete) month which we can if it is the 4th or later
-                    if (present.Day >= 3) 
+                DateTime ldate = this.RapportageDatum;
+                if ((ldate.Year == year) && (ldate.Month == mo)) { 
+                    // Check if we can report the last (incomplete) month which we can if it is the 2th or later
+                    if (ldate.Day >= 2) 
                     {
-                        datestring = present.AddDays(-2).ToString("dd-MM-yyyy");
+                        datestring = ldate.ToString("dd-MM-yyyy");
                         this.LastMonthDate = datestring;
                         Task<string> longRunningTask2 = this.GetSMPday(datestring, apikey, "Month");
                         string result2 = await longRunningTask2;

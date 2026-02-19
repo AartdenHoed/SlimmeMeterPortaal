@@ -41,24 +41,30 @@
                                     <th>
                                         @Html.DisplayNameFor(model => model.Devicelijst[i].DeviceID)
                                     </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.Devicelijst[i].LastDateWithData)
+                                    </th>
                                 </tr>
                             }
                             
-                            <tr>
-                                <td>
-                                    @Html.CheckBoxFor(model => model.Devicelijst[i].ReportDevice,
-                                            new { @class = "sy-input", @onclick = "Includeit(this)" })
-                                    @Html.ValidationMessageFor(model => model.Devicelijst[i].ReportDevice, "", new { @class = "text-danger" })
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(model => model.Devicelijst[i].DeviceType)
+                <tr>
+                    <td>
+                        @Html.CheckBoxFor(model => model.Devicelijst[i].ReportDevice,
+                                new { @class = "sy-input", @onclick = "Includeit(this)" })
+                        @Html.ValidationMessageFor(model => model.Devicelijst[i].ReportDevice, "", new { @class = "text-danger" })
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => model.Devicelijst[i].DeviceType)
 
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(model => model.Devicelijst[i].DeviceID)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => model.Devicelijst[i].DeviceID)
 
-                                </td>
-                            </tr>
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => model.Devicelijst[i].LastDateWithData)
+                    </td>
+                </tr>
 
                         }
                     }

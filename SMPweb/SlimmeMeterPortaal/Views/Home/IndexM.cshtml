@@ -41,41 +41,54 @@
                                     <th>
                                         @Html.DisplayNameFor(model => model.Devicelijst[i].DeviceID)
                                     </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.Devicelijst[i].LastDateWithData)
+                                    </th>
                                 </tr>
                             }
                             
-                            <tr>
-                                <td>
-                                    @Html.CheckBoxFor(model => model.Devicelijst[i].ReportDevice,
-                                            new { @class = "sy-input", @onclick = "Includeit(this)" })
-                                    @Html.ValidationMessageFor(model => model.Devicelijst[i].ReportDevice, "", new { @class = "text-danger" })
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(model => model.Devicelijst[i].DeviceType)
+                <tr>
+                    <td>
+                        @Html.CheckBoxFor(model => model.Devicelijst[i].ReportDevice,
+                                new { @class = "sy-input", @onclick = "Includeit(this)" })
+                        @Html.ValidationMessageFor(model => model.Devicelijst[i].ReportDevice, "", new { @class = "text-danger" })
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => model.Devicelijst[i].DeviceType)
 
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(model => model.Devicelijst[i].DeviceID)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => model.Devicelijst[i].DeviceID)
 
-                                </td>
-                            </tr>
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => model.Devicelijst[i].LastDateWithData)
+                    </td>
+                </tr>
 
                         }
                     }
                 </table>
 
                 @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                <dl class="sy-dl">
-                   
-                    <dt class="sy-dt">
-                        @Html.LabelFor(model => model.ReferentieJaren)
-                    </dt>
-                    <dd class="sy-dd">
-                        @Html.EditorFor(model => model.ReferentieJaren, new { htmlAttributes = new { @class = "sy-input40" } })
-                        @Html.ValidationMessageFor(model => model.ReferentieJaren, "", new { @class = "text-danger" })
-                    </dd>                   
+            <dl class="sy-dl">
+                <dt class="sy-dt">
+                    @Html.LabelFor(model => model.Rapportagedatum)
+                </dt>
+                <dd class="sy-dd">
+                    @Html.EditorFor(model => model.Rapportagedatum, new { htmlAttributes = new { @class = "sy-input", @autofocus = "autofocus" } })
+                    @Html.ValidationMessageFor(model => model.Rapportagedatum, "", new { @class = "text-danger" })
+                </dd>
 
-                </dl>
+                <dt class="sy-dt">
+                    @Html.LabelFor(model => model.ReferentieJaren)
+                </dt>
+                <dd class="sy-dd">
+                    @Html.EditorFor(model => model.ReferentieJaren, new { htmlAttributes = new { @class = "sy-input40" } })
+                    @Html.ValidationMessageFor(model => model.ReferentieJaren, "", new { @class = "text-danger" })
+                </dd>
+
+            </dl>
                 <div class="smp-inc">
                     @Html.EditorFor(model => model.IncludeGas)
                     @Html.EditorFor(model => model.IncludeStroom)

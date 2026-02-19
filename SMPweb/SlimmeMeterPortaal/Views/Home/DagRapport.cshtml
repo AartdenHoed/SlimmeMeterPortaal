@@ -45,22 +45,28 @@
                                 <th>
                                     @Html.DisplayNameFor(modelItem => item.DeviceID)
                                 </th>
+                                <th>
+                                    @Html.DisplayNameFor(modelItem => item.LastDateWithData)
+                                </th>
                             </tr>
                         }
                         i = i + 1;
-                        <tr>
-                            <td>
-                                @Html.CheckBoxFor(modelItem => item.ReportDevice,
-                                     new { @class = "sy-input", @onclick = "Includeit(this)" })
-                                @Html.ValidationMessageFor(modelItem => item.ReportDevice, "", new { @class = "text-danger" })
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.DeviceType)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => item.DeviceID)
-                            </td>
-                        </tr>
+            <tr>
+                <td>
+                    @Html.CheckBoxFor(modelItem => item.ReportDevice,
+                         new { @class = "sy-input", @onclick = "Includeit(this)" })
+                    @Html.ValidationMessageFor(modelItem => item.ReportDevice, "", new { @class = "text-danger" })
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DeviceType)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DeviceID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.LastDateWithData)
+                </td>
+            </tr>
 
                     }
                 }

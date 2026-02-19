@@ -33,10 +33,10 @@ namespace SlimmeMeterPortaal.ViewModels
         public MessageVM Message = new MessageVM();
 
         [Required(ErrorMessage = "Rapportage datum is een verplicht veld")]
-        [DisplayName("Rapporteer over de week t/m deze datum")]
+        [DisplayName("Rapporteer t/m deze datum")]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         [DataType(DataType.DateTime)]
-        public DateTime Rapportagedatum { get; set; } = DateTime.Today.AddDays(-1);
+        public DateTime Rapportagedatum { get; set; } = DateTime.MinValue;
 
         [Required(ErrorMessage = "Referentie jaren is een verplicht veld")]
         [DisplayName("Aantal jaren historie ter vergelijking")]
@@ -124,6 +124,7 @@ namespace SlimmeMeterPortaal.ViewModels
         {           
             int retrycount = 0;
             string result = "Nok";
+            string result2 = "x"; 
             do { 
                 
 
@@ -171,6 +172,35 @@ namespace SlimmeMeterPortaal.ViewModels
                         {
                             dv.Enddate = DateTime.MaxValue;
                         }
+
+                        // Get latest date with data for this meter
+                        DateTime ldate = DateTime.Now;
+                        bool ldatefound = false;
+
+                        do
+                        {
+                            string datestring = ldate.ToString("dd-MM-yyyy");
+                            Task<string> longRunningTask = dv.GetSMPday(datestring, this.APIkey, "Lastdate");
+                            result2 = await longRunningTask;
+
+                            if (result2 == "Last")
+                            {
+                                ldatefound = true;
+                                dv.LastDateWithData = ldate;
+                                if (ldate > this.Rapportagedatum)
+                                {
+                                    if (this.Rapportagedatum == DateTime.MinValue)
+                                    {
+                                        this.Rapportagedatum = ldate;
+                                    }
+                                }
+                            }
+
+                            ldate = ldate.AddDays(-1);
+
+                        } while (!ldatefound);
+
+
                         this.Devicelijst.Add(dv);
                     }
                     request.Dispose();
@@ -181,6 +211,7 @@ namespace SlimmeMeterPortaal.ViewModels
               
             return result;
         }
+       
         public async Task<string> GetUsage()
         {
             string result = "Nok";
@@ -274,7 +305,15 @@ namespace SlimmeMeterPortaal.ViewModels
             foreach (DeviceVM dvm in this.Devicelijst)
             {
                 if (!dvm.ReportDevice) { continue; }
-                int firstYear = this.Rapportagedatum.AddYears(-1*this.ReferentieJaren).Year;
+                if (dvm.LastDateWithData < this.Rapportagedatum)
+                {
+                    dvm.RapportageDatum = dvm.LastDateWithData;
+                }
+                else
+                {
+                    dvm.RapportageDatum = this.Rapportagedatum;
+                }
+                int firstYear = this.Rapportagedatum.AddYears(-1 * this.ReferentieJaren).Year;
                 int currentYear = DateTime.Now.Year;
                 for (int i = firstYear; i <= currentYear; i++)
                 {
