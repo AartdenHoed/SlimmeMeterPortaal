@@ -314,7 +314,7 @@ namespace SlimmeMeterPortaal.ViewModels
                     dvm.RapportageDatum = this.Rapportagedatum;
                 }
                 int firstYear = this.Rapportagedatum.AddYears(-1 * this.ReferentieJaren).Year;
-                int currentYear = DateTime.Now.Year;
+                int currentYear = this.Rapportagedatum.Year;
                 for (int i = firstYear; i <= currentYear; i++)
                 {
                     

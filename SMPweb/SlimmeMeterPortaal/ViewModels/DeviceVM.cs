@@ -55,6 +55,10 @@ namespace SlimmeMeterPortaal.ViewModels
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         [DataType(DataType.DateTime)]
         public DateTime LastDateWithData { get; set; }
+
+        [DisplayName("Rapportage datum")]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
+        [DataType(DataType.DateTime)]
         public DateTime RapportageDatum { get; set; }
 
         public string Eenheid
@@ -115,7 +119,7 @@ namespace SlimmeMeterPortaal.ViewModels
 
         public string LastMonthName { get
             {
-                DateTime lm = DateTime.ParseExact(this.LastMonthDate, "dd-MM-yyyy", null);
+                DateTime lm = DateTime.ParseExact(this.LastMonthDate, "dd-MM-yyyy", null).AddDays(-1);
                 int maand = lm.Month;
                 return this.MaandArray[maand - 1];
             } 
@@ -778,16 +782,25 @@ namespace SlimmeMeterPortaal.ViewModels
                 string result = await longRunningTask;
 
                 DateTime ldate = this.RapportageDatum;
-                if ((ldate.Year == year) && (ldate.Month == mo)) { 
-                    // Check if we can report the last (incomplete) month which we can if it is the 2th or later
-                    if (ldate.Day >= 2) 
+                if ((ldate.Year == year) && (ldate.Month == mo)) {
+
+                    DateTime testdate = ldate.AddDays(1); // Add one day to INCLUDE the usage of the last day!
+                    
+                    if (testdate > this.LastDateWithData)
                     {
-                        datestring = ldate.ToString("dd-MM-yyyy");
-                        this.LastMonthDate = datestring;
-                        Task<string> longRunningTask2 = this.GetSMPday(datestring, apikey, "Month");
-                        string result2 = await longRunningTask2;
-                        
+                        // if no data available, leave ldate as it is and adjust report date
+                        this.RapportageDatum = this.RapportageDatum.AddDays(-1);
                     }
+                    else
+                    {
+                        // if data available. adjust ldate
+                        ldate = testdate;
+                    }
+                    datestring = ldate.ToString("dd-MM-yyyy");
+                    this.LastMonthDate = datestring;
+                    Task<string> longRunningTask2 = this.GetSMPday(datestring, apikey, "Month");
+                    string result2 = await longRunningTask2;
+
                     // this was the last date to proces
                     break;
                 }               
@@ -806,7 +819,7 @@ namespace SlimmeMeterPortaal.ViewModels
             decimal meterstandtotaal = 0;
                         
             int startyear = this.MaandGasMetingen[0].VerbruiksDatum.Year;
-            int endyear = DateTime.Now.Year;
+            int endyear = this.RapportageDatum.Year;
 
             for (int y = startyear; y <= endyear; y++)
             {
@@ -899,14 +912,26 @@ namespace SlimmeMeterPortaal.ViewModels
                         
                     }
                 }
-                if (currentyear == DateTime.Now.Year)
+                if (currentyear == endyear)
                 {
                     // Add last (incomplete) year
                     int q = maandverbruik.MaandCijfers.Count;
                     int maxdays = DateTime.DaysInMonth(currentyear, maandverbruik.MaandCijfers[q - 1].MaandNummer);
                     DateTime lastmonth = DateTime.ParseExact(this.LastMonthDate, "dd-MM-yyyy", null);
-                    int nrofdays = lastmonth.Day;
+                    int nrofdays = lastmonth.Day - 1;
+
+                    // determine forecast of last - incomplete - month 
+                    // if reportimg goes tot end of moth, yhe last measurement is in the next (empty) month, so adjust 
+                    if (nrofdays == 0)
+                    {
+                        lastmonth = lastmonth.AddDays(-1);
+                        nrofdays = lastmonth.Day;
+                        this.LastMonthDate = lastmonth.ToString("dd-MM-yyyy");
+                    }
+                    
                     this.LastMonthForecast = maandverbruik.MaandCijfers[q - 1].Cijfer * maxdays / nrofdays;
+                    
+                    // Add dummy entries for months that lay in the future
                     for (int j = q; j <= 12; j++)
                     {
                         MaandCijfer dummy = new MaandCijfer
@@ -933,7 +958,7 @@ namespace SlimmeMeterPortaal.ViewModels
             decimal meterstandlaagtarief = 0;
 
             int startyear = this.MaandStroomMetingen[0].VerbruiksDatum.Year;
-            int endyear = DateTime.Now.Year;
+            int endyear = this.RapportageDatum.Year;
 
             for (int y = startyear; y <= endyear; y++)
             {
@@ -1062,25 +1087,33 @@ namespace SlimmeMeterPortaal.ViewModels
 
                     }
                 }
-                if (currentyear == DateTime.Now.Year)
+                if (currentyear == endyear)
                 {
                     // Add last (incomplete) year
                     int q = maandverbruik.MaandCijfers.Count;
-                    int maxdays = DateTime.DaysInMonth(currentyear, maandverbruik.MaandCijfers[q-1].MaandNummer);
+                    int maxdays = DateTime.DaysInMonth(currentyear, maandverbruik.MaandCijfers[q - 1].MaandNummer);
                     DateTime lastmonth = DateTime.ParseExact(this.LastMonthDate, "dd-MM-yyyy", null);
-                    int nrofdays = lastmonth.Day;
+                    int nrofdays = lastmonth.Day - 1;
+
+                    // determine forecast of last - incomplete - month 
+                    // if reportimg goes tot end of moth, yhe last measurement is in the next (empty) month, so adjust 
+                    if (nrofdays == 0)
+                    {
+                        lastmonth = lastmonth.AddDays(-1);
+                        nrofdays = lastmonth.Day;
+                        this.LastMonthDate = lastmonth.ToString("dd-MM-yyyy");
+                    }
+
                     this.LastMonthForecast = maandverbruik.MaandCijfers[q - 1].Cijfer * maxdays / nrofdays;
-                    
+
+                    // Add dummy entries for months that lay in the future
                     for (int j = q; j <= 12; j++)
                     {
                         MaandCijfer dummy = new MaandCijfer
                         {
                             MaandLabel = this.MaandArray[j - 1],
                             MaandNummer = j,
-                            Cijfer = 0,
-                            MeterstandTotaal = 0,
-                            MeterstandNormaalTarief = 0,
-                            MeterstandLaagTarief = 0
+                            Cijfer = 0
                         };
                         maandverbruik.MaandCijfers.Add(dummy);
                     }
@@ -1111,11 +1144,11 @@ namespace SlimmeMeterPortaal.ViewModels
                 
                 foreach (MaandVerbruik maandverbruik in this.MaandVerbruiken)
                 {
-                    if (maandverbruik.Jaar == DateTime.Now.Year) 
+                    if (maandverbruik.Jaar == this.RapportageDatum.Year) 
                     {                        
                         break; 
                     }
-                    if ((maandverbruik.MaandCijfers[i].MaandNummer != i + 1) && (maandverbruik.Jaar != DateTime.Now.Year))
+                    if ((maandverbruik.MaandCijfers[i].MaandNummer != i + 1) && (maandverbruik.Jaar != this.RapportageDatum.Year))
                     {
                         throw new Exception("Maandnummer matcht niet in MONTHSTATS");
                     }
@@ -1141,7 +1174,7 @@ namespace SlimmeMeterPortaal.ViewModels
             foreach (MaandVerbruik m in this.MaandVerbruiken)
             {
                 // Referentie Jaarcijfers
-                if (m.Jaar == DateTime.Now.Year)
+                if (m.Jaar == this.RapportageDatum.Year)
                 {
                     break;
                 }
