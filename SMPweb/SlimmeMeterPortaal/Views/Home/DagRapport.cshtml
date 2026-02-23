@@ -178,7 +178,7 @@
                         var i = 0;
                         foreach (var item2 in item.DagRapport)
                         {
-                            if (i == 0)
+                            if (i <= 1)
                             {
                                 <tr>
                                     <th>
@@ -221,14 +221,17 @@
                                         @Html.DisplayFor(modelItem => item2.Dag7)
                                     </th>
                                 </tr>
+                                if (i == 1)
                                 {
                                     <tr style="border-bottom:5px solid black">
                                         <td colspan=12></td>
                                     </tr>
                                 }
+
                             }
                             else
                             {
+
                                 <tr>
                                     <td>
                                         @Html.DisplayFor(modelItem => item2.N)
@@ -278,7 +281,7 @@
                                     </td>
                                 </tr>
                             }
-                            if (i == 24)
+                            if (i == 25)
                             {
                                 <tr style="border-bottom:5px solid black">
                                     <td colspan=12></td>

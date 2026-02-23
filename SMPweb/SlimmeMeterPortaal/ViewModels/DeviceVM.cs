@@ -355,10 +355,12 @@ namespace SlimmeMeterPortaal.ViewModels
                 decimal uurverbruik = 0;
                 string uurlabel = uurnummer.ToString("D2") + "-" + (uurnummer + 1).ToString("D2") + " Uur";
                 DateTime currentdate = DateTime.MinValue;
+                string utc = ""; 
 
                 foreach (GasUsage gasusage in gasverbruik.MetingLijst.usages)
                 {
                     currentdate = DateTime.ParseExact(gasusage.time.Substring(0, 19), "dd-MM-yyyy HH:mm:ss", null);
+                    utc = gasusage.time.Substring(20,3);
                     int currenthour = currentdate.Hour;
                     int currentday = currentdate.Day;
                     if (currentday != verbruiksdag)
@@ -382,6 +384,7 @@ namespace SlimmeMeterPortaal.ViewModels
                             UurVerbruikEntry uurVerbruikEntry = new UurVerbruikEntry()
                             {
                                 UurLabel = uurlabel,
+                                UTC = utc,
                                 VerbruiksTijdstip = currentdate,
                                 UurNummer = uurnummer,
                                 UurVerbruik = uurverbruik,
@@ -399,6 +402,7 @@ namespace SlimmeMeterPortaal.ViewModels
                             UurVerbruikEntry uurVerbruikEntry = new UurVerbruikEntry()
                             {
                                 UurLabel = uurlabel,
+                                UTC = utc,
                                 VerbruiksTijdstip = currentdate,
                                 UurNummer = uurnummer,
                                 UurVerbruik = 0,
@@ -418,6 +422,7 @@ namespace SlimmeMeterPortaal.ViewModels
                         UurVerbruikEntry uurVerbruikEntry = new UurVerbruikEntry()
                         {
                             UurLabel = uurlabel,
+                            UTC = utc,
                             VerbruiksTijdstip = currentdate,
                             UurNummer = uurnummer,
                             UurVerbruik = 0,
@@ -468,10 +473,12 @@ namespace SlimmeMeterPortaal.ViewModels
                 decimal uurverbruik = 0;
                 string uurlabel = uurnummer.ToString("D2") + "-" + (uurnummer + 1).ToString("D2") + " Uur";
                 DateTime currentdate = DateTime.MinValue;
+                string utc = "";
 
                 foreach (StroomUsage stroomusage in stroomverbruik.MetingLijst.usages)
                 {
                     currentdate = DateTime.ParseExact(stroomusage.time.Substring(0, 19), "dd-MM-yyyy HH:mm:ss", null);
+                    utc = stroomusage.time.Substring(20, 3);
                     int currenthour = currentdate.Hour;
                     int currentday = currentdate.Day;
                     int d1;
@@ -513,6 +520,7 @@ namespace SlimmeMeterPortaal.ViewModels
                             UurVerbruikEntry uurVerbruikEntry = new UurVerbruikEntry()
                             {
                                 UurLabel = uurlabel,
+                                UTC = utc,
                                 VerbruiksTijdstip = currentdate,
                                 UurNummer = uurnummer,
                                 UurVerbruik = uurverbruik,
@@ -530,6 +538,7 @@ namespace SlimmeMeterPortaal.ViewModels
                             UurVerbruikEntry uurVerbruikEntry = new UurVerbruikEntry()
                             {
                                 UurLabel = uurlabel,
+                                UTC = utc,
                                 VerbruiksTijdstip = currentdate,
                                 UurNummer = uurnummer,
                                 UurVerbruik = 0,
@@ -549,6 +558,7 @@ namespace SlimmeMeterPortaal.ViewModels
                         UurVerbruikEntry uurVerbruikEntry = new UurVerbruikEntry()
                         {
                             UurLabel = uurlabel,
+                            UTC = utc,
                             VerbruiksTijdstip = currentdate,
                             UurNummer = uurnummer,
                             UurVerbruik = 0,
@@ -711,7 +721,25 @@ namespace SlimmeMeterPortaal.ViewModels
                 Dag7 = this.UurVerbruik[6].VerbruiksDatum.ToString("yyyy-MM-dd")
             };
             this.DagRapport.Add(line);
-            
+
+            RPT_line lineu = new RPT_line
+            {
+                N = "",
+                Min = "",
+                Mean = "",
+                Max = "",
+                Label = "",
+                Eenheid = "",
+                Dag1 = this.UurVerbruik[0].UTC,
+                Dag2 = this.UurVerbruik[1].UTC,
+                Dag3 = this.UurVerbruik[2].UTC,
+                Dag4 = this.UurVerbruik[3].UTC,
+                Dag5 = this.UurVerbruik[4].UTC,
+                Dag6 = this.UurVerbruik[5].UTC,
+                Dag7 = this.UurVerbruik[6].UTC
+            };
+            this.DagRapport.Add(lineu);
+
             for (int i = 0; i < 24; i++)
             {
                 RPT_line lined = new RPT_line

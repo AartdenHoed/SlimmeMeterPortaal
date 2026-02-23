@@ -46,7 +46,7 @@ namespace SlimmeMeterPortaal.ViewModels
         public List<decimal> Uurwaarden = new List<decimal>();
         public int AantalWaarnemingen { get; set; }
         public string UurLabel { get; set; }
-
+        
         public StatNumbers StatNumbers = new StatNumbers();
 
     }
