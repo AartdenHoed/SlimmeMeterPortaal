@@ -374,12 +374,14 @@ namespace SlimmeMeterPortaal.ViewModels
                     aantalmetingen++;
                     if (currenthour == uurnummer)
                     {
+                        // Just keep on filling the hour usage entry while in this hour
                         continue;
                     }
 
                     for (int i = uurnummer; i < currenthour; i++)
                     {
                         if ((uurnummer + 1) == currenthour)
+                        // Next hour starts here, so output current hour
                         {
                             UurVerbruikEntry uurVerbruikEntry = new UurVerbruikEntry()
                             {
@@ -399,6 +401,7 @@ namespace SlimmeMeterPortaal.ViewModels
                         }
                         else
                         {
+                            // Apparantly we are missing an hour, so just output a zero hour usage
                             UurVerbruikEntry uurVerbruikEntry = new UurVerbruikEntry()
                             {
                                 UurLabel = uurlabel,
@@ -416,6 +419,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 }
                 if (uurnummer < 24)
                 {
+                    // Hour should be 24 by now. If not, just add enough zero entries
                     for (int i = uurnummer; i < 24; i++)
                     {
                         uurlabel = uurnummer.ToString("D2") + "-" + (uurnummer + 1).ToString("D2") + " Uur";
@@ -867,24 +871,31 @@ namespace SlimmeMeterPortaal.ViewModels
                         }
                         else
                         {                            
+                            // eerste maand van het jaar
                             maandverbruik.DeviceID = GasMetingen.DeviceID;
                             maandverbruik.Jaar = GasMetingen.VerbruiksDatum.Year;
                             maandverbruik.VerbruiksType = "gas";
 
-                            string strt = GasMetingen.MetingLijst.usages[0].delivery_reading;
+                            string strt = GasMetingen.MetingLijst.usages[0].delivery_reading; // meterstand
+                            string deliv = GasMetingen.MetingLijst.usages[0].delivery;
+
                             int istart = Int32.Parse(strt.Replace(",", "").Replace(".", ""));
                             decimal dstart = istart;
-                            startreading = dstart / 100;
+
+                            int ideliv = Int32.Parse(deliv.Replace(",", "").Replace(".", ""));
+                            decimal ddeliv = ideliv;
+
+                            // de eerste entry van de dag bevat de meterstand aan het einde van het eerste uur. 
+                            // de delivery eraf trekken geeft de stand om 00:00 uur
+                            startreading = (dstart - ddeliv) / 100; // start stand van het jaar 
 
                             currentyear = GasMetingen.VerbruiksDatum.Year;
 
                             newyear = false;
 
                             // Get meterstanden
-                            string total = GasMetingen.MetingLijst.usages[0].delivery_reading;
-                            int itotal = Int32.Parse(total.Replace(",", "").Replace(".", ""));
-                            decimal dtotal = itotal;
-                            meterstandtotaal = dtotal / 100;
+
+                            meterstandtotaal = startreading;
 
                         }
                     }
@@ -896,11 +907,17 @@ namespace SlimmeMeterPortaal.ViewModels
                         }
 
                         string strt = GasMetingen.MetingLijst.usages[0].delivery_reading;
+                        string deliv = GasMetingen.MetingLijst.usages[0].delivery;
+
                         int istart = Int32.Parse(strt.Replace(",", "").Replace(".", ""));
                         decimal dstart = istart;
-                        endreading = dstart / 100;
-                        decimal monthusage = endreading - startreading;
 
+                        int ideliv = Int32.Parse(deliv.Replace(",", "").Replace(".", ""));
+                        decimal ddeliv = ideliv;
+
+                        endreading = (dstart - ddeliv) / 100;
+
+                        decimal monthusage = endreading - startreading;
                         
                         if (GasMetingen.VerbruiksDatum.Day == 1)
                         {
@@ -921,15 +938,13 @@ namespace SlimmeMeterPortaal.ViewModels
                             Cijfer = monthusage,
                             MeterstandTotaal = meterstandtotaal,
                             MeterstandLaagTarief = 0,
-                            MeterstandNormaalTarief = 0
+                            MeterstandNormaalTarief = meterstandtotaal
                         };
                         maandverbruik.MaandCijfers.Add(maandCijfer);
 
                         startreading = endreading;
-                        string total = GasMetingen.MetingLijst.usages[0].delivery_reading;
-                        int itotal = Int32.Parse(total.Replace(",", "").Replace(".", ""));
-                        decimal dtotal = itotal;
-                        meterstandtotaal = dtotal / 100;
+
+                        meterstandtotaal = startreading;
 
                         if (currentyear != GasMetingen.VerbruiksDatum.Year)
                         {
@@ -982,9 +997,7 @@ namespace SlimmeMeterPortaal.ViewModels
             decimal startreading = 0;
             decimal endreading;
             decimal meterstandtotaal = 0;
-            decimal meterstandnormaaltarief = 0;
-            decimal meterstandlaagtarief = 0;
-
+            
             int startyear = this.MaandStroomMetingen[0].VerbruiksDatum.Year;
             int endyear = this.RapportageDatum.Year;
 
@@ -1006,45 +1019,36 @@ namespace SlimmeMeterPortaal.ViewModels
                         }
                         else
                         {
+                            // eerste maand van het jaar
                             maandverbruik.DeviceID = StroomMetingen.DeviceID;
                             maandverbruik.Jaar = StroomMetingen.VerbruiksDatum.Year;
                             maandverbruik.VerbruiksType = "elektriciteit";
 
-                            string strt = StroomMetingen.MetingLijst.usages[0].delivery_reading_combined;
+                            string strt = StroomMetingen.MetingLijst.usages[0].delivery_reading_combined; // meterstand
+                            string deliv = StroomMetingen.MetingLijst.usages[0].delivery_high;
+                            if (string.IsNullOrEmpty(deliv)) {
+                                deliv = StroomMetingen.MetingLijst.usages[0].delivery_low;
+                            }
+
                             int istart = Int32.Parse(strt.Replace(",", "").Replace(".", ""));
                             decimal dstart = istart;
-                            startreading = dstart / 100;
+
+                            int ideliv = Int32.Parse(deliv.Replace(",", "").Replace(".", ""));
+                            decimal ddeliv = ideliv;
+
+                            // de eerste entry van de dag bevat de meterstand aan het einde van het eerste uur. 
+                            // de delivery eraf trekken geeft de stand om 00:00 uur
+                            startreading = (dstart - ddeliv) / 100; // start stand van het jaar 
 
                             currentyear = StroomMetingen.VerbruiksDatum.Year;
 
                             newyear = false;
 
                             // Get meterstanden
-                            string total = StroomMetingen.MetingLijst.usages[0].delivery_reading_combined;
-                            int itotal = Int32.Parse(total.Replace(",", "").Replace(".", ""));
-                            decimal dtotal = itotal;
-                            meterstandtotaal = dtotal / 100;
-                            string normal = StroomMetingen.MetingLijst.usages[0].delivery_reading_high;
-                            if (string.IsNullOrEmpty(normal))
-                            {
-                                meterstandnormaaltarief = 0;
-                            }
-                            else {
-                                int inormal = Int32.Parse(normal.Replace(",", "").Replace(".", ""));
-                                decimal dnormal = inormal;
-                                meterstandnormaaltarief = dnormal / 100;
-                            }
-                            string low = StroomMetingen.MetingLijst.usages[0].delivery_reading_low;
-                            if (string.IsNullOrEmpty(low))
-                            {
-                                meterstandlaagtarief = 0;
-                            }
-                            else
-                            {
-                                int ilow = Int32.Parse(low.Replace(",", "").Replace(".", ""));
-                                decimal dlow = ilow;
-                                meterstandlaagtarief = dlow / 100;
-                            }
+
+                            meterstandtotaal = startreading;
+                                                                                   
+                            
                         }
                     }
                     else
@@ -1053,12 +1057,23 @@ namespace SlimmeMeterPortaal.ViewModels
                         {
                             throw new Exception("Lege meting: jaar = " + currentyear.ToString() + " maand = " + maandnr.ToString());
                         }
-
+                        
                         string strt = StroomMetingen.MetingLijst.usages[0].delivery_reading_combined;
+                        string deliv = StroomMetingen.MetingLijst.usages[0].delivery_high;
+                        if (string.IsNullOrEmpty(deliv)) {
+                            deliv = StroomMetingen.MetingLijst.usages[0].delivery_low;
+                        }
+
                         int istart = Int32.Parse(strt.Replace(",", "").Replace(".", ""));
                         decimal dstart = istart;
-                        endreading = dstart / 100;
-                        decimal monthusage = endreading - startreading;
+
+                        int ideliv = Int32.Parse(deliv.Replace(",", "").Replace(".", ""));
+                        decimal ddeliv = ideliv;
+
+                        endreading = (dstart - ddeliv) / 100;
+
+                        decimal monthusage = endreading - startreading;                       
+                                                
                         if (StroomMetingen.VerbruiksDatum.Day == 1)
                         {
                             maandnr = StroomMetingen.VerbruiksDatum.Month - 1;
@@ -1072,40 +1087,15 @@ namespace SlimmeMeterPortaal.ViewModels
                             MaandNummer = maandnr,
                             Cijfer = monthusage,
                             MeterstandTotaal = meterstandtotaal,
-                            MeterstandNormaalTarief = meterstandnormaaltarief,
-                            MeterstandLaagTarief = meterstandlaagtarief
+                            MeterstandNormaalTarief = meterstandtotaal,
+                            MeterstandLaagTarief = 0
                         };
 
                         maandverbruik.MaandCijfers.Add(maandCijfer);
                         startreading = endreading;
 
                         // Get meterstanden
-                        string total = StroomMetingen.MetingLijst.usages[0].delivery_reading_combined;
-                        int itotal = Int32.Parse(total.Replace(",", "").Replace(".", ""));
-                        decimal dtotal = itotal;
-                        meterstandtotaal = dtotal / 100;
-                        string normal = StroomMetingen.MetingLijst.usages[0].delivery_reading_high;
-                        if (string.IsNullOrEmpty(normal))
-                        {
-                            meterstandnormaaltarief = 0;
-                        }
-                        else
-                        {
-                            int inormal = Int32.Parse(normal.Replace(",", "").Replace(".", ""));
-                            decimal dnormal = inormal;
-                            meterstandnormaaltarief = dnormal / 100;
-                        }
-                        string low = StroomMetingen.MetingLijst.usages[0].delivery_reading_low;
-                        if (string.IsNullOrEmpty(low))
-                        {
-                            meterstandlaagtarief = 0;
-                        }
-                        else
-                        {
-                            int ilow = Int32.Parse(low.Replace(",", "").Replace(".", ""));
-                            decimal dlow = ilow;
-                            meterstandlaagtarief = dlow / 100;
-                        }
+                        meterstandtotaal = startreading;                       
 
                         if (currentyear != StroomMetingen.VerbruiksDatum.Year)
                         {
