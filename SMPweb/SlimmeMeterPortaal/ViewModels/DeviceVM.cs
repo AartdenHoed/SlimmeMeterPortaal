@@ -83,6 +83,8 @@ namespace SlimmeMeterPortaal.ViewModels
         }
 
         [DisplayName("Meter start datum")]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
+        [DataType(DataType.DateTime)]
         public System.DateTime Startdate { get; set; }
 
         [DisplayName("Meter eind datum")]

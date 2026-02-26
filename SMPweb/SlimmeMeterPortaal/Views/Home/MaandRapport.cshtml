@@ -46,6 +46,9 @@
                                     @Html.DisplayNameFor(modelItem => item.DeviceID)
                                 </th>
                                 <th>
+                                    @Html.DisplayNameFor(modelItem => item.Startdate)
+                                </th>
+                                <th>
                                     @Html.DisplayNameFor(modelItem => item.LastDateWithData)
                                 </th>
                             </tr>
@@ -62,6 +65,9 @@
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.DeviceID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Startdate)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.LastDateWithData)
@@ -128,11 +134,11 @@
             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
         <dl class="sy-dl">
             <dt class="sy-dt">
-                @Html.LabelFor(model => model.Rapportagedatum)
+                @Html.LabelFor(model => model.Rapportagestringdatum)
             </dt>
             <dd class="sy-dd">
-                @Html.EditorFor(model => model.Rapportagedatum, new { htmlAttributes = new { @class = "sy-input", @autofocus = "autofocus" } })
-                @Html.ValidationMessageFor(model => model.Rapportagedatum, "", new { @class = "text-danger" })
+                @Html.EditorFor(model => model.Rapportagestringdatum, new { htmlAttributes = new { @class = "sy-input", @autofocus = "autofocus" } })
+                @Html.ValidationMessageFor(model => model.Rapportagestringdatum, "", new { @class = "text-danger" })
             </dd>
             <dt class="sy-dt">
                 @Html.LabelFor(model => model.ReferentieJaren)

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Ajax.Utilities;
+using Microsoft.SqlServer.Server;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SlimmeMeterPortaal.ViewModels;
@@ -36,8 +37,13 @@ namespace SlimmeMeterPortaal.ViewModels
         [DisplayName("Rapporteer t/m deze datum")]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         [DataType(DataType.DateTime)]
-        public DateTime Rapportagedatum { get; set; } = DateTime.MinValue;
+        public DateTime Rapportagedatum { get; set; }
 
+        [Required(ErrorMessage = "Rapportage datum is een verplicht veld, format yyyy-mm-dd")]
+        [StringLength(10)]
+        [DisplayName("Rapporteer t/m deze datum")]    
+        public string Rapportagestringdatum { get; set; }
+       
         [Required(ErrorMessage = "Referentie jaren is een verplicht veld")]
         [DisplayName("Aantal jaren historie ter vergelijking")]
         public int ReferentieJaren { get; set; } = 5;
@@ -119,6 +125,68 @@ namespace SlimmeMeterPortaal.ViewModels
             return;
         }
 
+        public string DatumValidatie(int type)
+        {
+            string result = "Ok";
+
+            // Determine maximum date
+            DateTime maxd = DateTime.MinValue;
+            foreach (DeviceVM dv in this.Devicelijst)
+            {
+                if (dv.LastDateWithData > maxd)
+                {
+                    maxd = dv.LastDateWithData;
+                }
+            }
+            // Determine minimum date
+            DateTime mind = DateTime.MinValue;
+            foreach (DeviceVM dv in this.Devicelijst)
+            {
+                if (dv.Startdate > mind)
+                {
+                    mind = dv.Startdate;
+                }
+            }
+            int miny = mind.Year;
+            mind = new DateTime(miny + 1, 1, 1);
+
+            if (string.IsNullOrEmpty(this.Rapportagestringdatum))
+                if (type == 0)  
+                {                    
+                    this.Rapportagedatum = maxd;
+                    this.Rapportagestringdatum = maxd.ToString("yyyy-MM-dd");
+                }
+                else
+                {
+                    result = "Specificeer een datum in formaat yyyy-mm-dd";
+                }
+            else 
+            {
+                string[] formats = { "yyyy-MM-dd" };
+                DateTime testdate;
+                if (!DateTime.TryParseExact(this.Rapportagestringdatum, formats,
+                                        System.Globalization.CultureInfo.InvariantCulture,
+                                        System.Globalization.DateTimeStyles.None, out testdate))
+                {
+                    result = "Ongeldige datum - geef datum in het format yyyy-MM-dd.";
+                }
+                else
+                {
+                    this.Rapportagedatum = testdate;
+                    if (this.Rapportagedatum > maxd)
+                    {
+                        result = "Van deze rapportagedatum hebben we nog geen data";
+                    }
+                    if (this.Rapportagedatum.AddYears(-1 * this.ReferentieJaren) < mind)
+                    {
+                        result = "Op deze rapportagedatum hebben we nog niet " + this.ReferentieJaren.ToString("d2") + " referentiejaren beschikbaar.";
+                    }
+                }
+            }
+          
+
+            return result;
+        }
 
         public async Task<string> GetMeters()
         {           
@@ -187,13 +255,7 @@ namespace SlimmeMeterPortaal.ViewModels
                             {
                                 ldatefound = true;
                                 dv.LastDateWithData = ldate;
-                                if (ldate > this.Rapportagedatum)
-                                {
-                                    if (this.Rapportagedatum == DateTime.MinValue)
-                                    {
-                                        this.Rapportagedatum = ldate;
-                                    }
-                                }
+                                
                             }
 
                             ldate = ldate.AddDays(-1);

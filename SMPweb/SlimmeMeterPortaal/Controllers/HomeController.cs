@@ -55,6 +55,13 @@ namespace SlimmeMeterPortaal.Controllers
             {
                 throw new Exception("AWAIT failed rc = " + result.ToString());
             }
+            string val = SMP_report.DatumValidatie(0);
+            if (val != "Ok")
+            {
+                lvl = SMP_report.Message.Warning;
+                msg = val;
+            }
+
             SMP_report.Message.Fill(title, lvl, msg);
 
             // Console.WriteLine("Stuur view");
@@ -92,6 +99,12 @@ namespace SlimmeMeterPortaal.Controllers
             {
                throw new Exception("AWAIT failed rc = " + result.ToString());
             }
+            string val = SMP_report.DatumValidatie(0);
+            if (val != "Ok")
+            {
+                lvl = SMP_report.Message.Warning;
+                msg = val;
+            }
             SMP_report.Message.Fill(title, lvl, msg);
 
             // Console.WriteLine("Stuur view");
@@ -104,18 +117,22 @@ namespace SlimmeMeterPortaal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DagRapport(SMP_Report SMP_report)
         {
-           
+
             // Set cookie values according to input screen
-            HttpCookie inputdaysCookie = new HttpCookie("InputDays");
-            inputdaysCookie.Value = SMP_report.ReferentieDagen.ToString();
-            inputdaysCookie.HttpOnly = true;
-            inputdaysCookie.Path = "/";
-            inputdaysCookie.Expires = DateTime.Now.AddDays(366);
-            HttpCookie inputyearsCookie = new HttpCookie("InputYears");
-            inputyearsCookie.Value = SMP_report.ReferentieJaren.ToString();
-            inputyearsCookie.HttpOnly = true;
-            inputyearsCookie.Path = "/";
-            inputyearsCookie.Expires = DateTime.Now.AddDays(366);
+            HttpCookie inputdaysCookie = new HttpCookie("InputDays")
+            {
+                Value = SMP_report.ReferentieDagen.ToString(),
+                HttpOnly = true,
+                Path = "/",
+                Expires = DateTime.Now.AddDays(366)
+            };
+            HttpCookie inputyearsCookie = new HttpCookie("InputYears")
+            {
+                Value = SMP_report.ReferentieJaren.ToString(),
+                HttpOnly = true,
+                Path = "/",
+                Expires = DateTime.Now.AddDays(366)
+            };
             Response.Cookies.Add(inputdaysCookie);
             Response.Cookies.Add(inputyearsCookie);
 
@@ -135,7 +152,14 @@ namespace SlimmeMeterPortaal.Controllers
                     msg = "AWAIT GETMETERS failed code = " + result;
                 }
             }
-
+            string val = SMP_report.DatumValidatie(1);
+            if (val != "Ok")
+            {
+                lvl = SMP_report.Message.Warning;                
+                msg = val;
+                SMP_report.Message.Fill(title, lvl, msg);
+                return View("Index", SMP_report);
+            }
 
             Task<string> longRunningTask2 = SMP_report.GetUsage();
             result = await longRunningTask2;
@@ -171,12 +195,15 @@ namespace SlimmeMeterPortaal.Controllers
         public async Task<ActionResult> MaandRapport(SMP_Report SMP_report)
         {
             // Set cookie values according to input screen
-            
-            HttpCookie inputyearsCookie = new HttpCookie("InputYears");
-            inputyearsCookie.Value = SMP_report.ReferentieJaren.ToString();
-            inputyearsCookie.HttpOnly = true;
-            inputyearsCookie.Path = "/";
-            inputyearsCookie.Expires = DateTime.Now.AddDays(366);           
+
+            HttpCookie inputyearsCookie = new HttpCookie("InputYears")
+            {
+                Value = SMP_report.ReferentieJaren.ToString(),
+                HttpOnly = true,
+                Path = "/",
+                Expires = DateTime.Now.AddDays(366)
+            };
+                     
             Response.Cookies.Add(inputyearsCookie);
 
             string title = "Maandrapportage";
@@ -194,6 +221,14 @@ namespace SlimmeMeterPortaal.Controllers
                     lvl = SMP_report.Message.Error;
                     msg = "AWAIT GETMETERS failed code = " + result;
                 }
+            }
+            string val = SMP_report.DatumValidatie(1);
+            if (val != "Ok")
+            {
+                lvl = SMP_report.Message.Warning;
+                msg = val;
+                SMP_report.Message.Fill(title, lvl, msg);
+                return View("IndexM", SMP_report);
             }
 
             Task<string> longRunningTask2 = SMP_report.GetMonthUsage();
