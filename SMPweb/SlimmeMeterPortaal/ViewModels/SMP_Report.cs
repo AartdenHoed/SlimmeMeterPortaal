@@ -1,29 +1,16 @@
-﻿using Microsoft.Ajax.Utilities;
-using Microsoft.SqlServer.Server;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SlimmeMeterPortaal.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
-using System.Web.Helpers;
-using System.Web.Services.Description;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace SlimmeMeterPortaal.ViewModels
 {

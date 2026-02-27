@@ -41,6 +41,17 @@ namespace SlimmeMeterPortaal.ViewModels
                 return totaalperdag;
             }
         }
+        public decimal DiffperDag
+        {
+            get
+            {
+                int cnt = this.UurLijst.Count;
+                // substract last endreading and first endreading. Than add the usage of the first hour
+                decimal diff = this.UurLijst[cnt - 1].EndReading - this.UurLijst[0].EndReading + this.UurLijst[0].UurVerbruik;
+
+                return diff;
+            }
+        }
     }
       
     public class UurVerbruikEntry
@@ -51,7 +62,7 @@ namespace SlimmeMeterPortaal.ViewModels
         public int UurNummer { get; set; }          
         public decimal UurVerbruik { get; set; }
         public int AantalMetingen { get; set; } 
-
+        public decimal EndReading { get; set; } // Meterstand op einde van het uur
     }    
     
 }

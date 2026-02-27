@@ -1,16 +1,12 @@
-﻿using Microsoft.Ajax.Utilities;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Drawing;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
-using System.Web.Management;
 
 namespace SlimmeMeterPortaal.ViewModels
 {
@@ -355,6 +351,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 int uurnummer = 0;
                 int aantalmetingen = 0;
                 decimal uurverbruik = 0;
+                decimal endreading = 0;
                 string uurlabel = uurnummer.ToString("D2") + "-" + (uurnummer + 1).ToString("D2") + " Uur";
                 DateTime currentdate = DateTime.MinValue;
                 string utc = ""; 
@@ -373,12 +370,17 @@ namespace SlimmeMeterPortaal.ViewModels
                     decimal ddec = d;
                     decimal delivery = ddec / 100;
                     uurverbruik += delivery;
-                    aantalmetingen++;
+                    aantalmetingen++;                   
+
                     if (currenthour == uurnummer)
                     {
                         // Just keep on filling the hour usage entry while in this hour
                         continue;
                     }
+                    // Get delivery reading to report End Reading of past hour
+                    int r = Int32.Parse(gasusage.delivery_reading.Replace(",", "").Replace(".", ""));
+                    decimal rdec = r;
+                    endreading = rdec / 100;
 
                     for (int i = uurnummer; i < currenthour; i++)
                     {
@@ -392,7 +394,8 @@ namespace SlimmeMeterPortaal.ViewModels
                                 VerbruiksTijdstip = currentdate,
                                 UurNummer = uurnummer,
                                 UurVerbruik = uurverbruik,
-                                AantalMetingen = aantalmetingen
+                                AantalMetingen = aantalmetingen,
+                                EndReading = endreading,
                             };
                             dagVerbruik.UurLijst.Add(uurVerbruikEntry);
 
@@ -411,7 +414,8 @@ namespace SlimmeMeterPortaal.ViewModels
                                 VerbruiksTijdstip = currentdate,
                                 UurNummer = uurnummer,
                                 UurVerbruik = 0,
-                                AantalMetingen = 0
+                                AantalMetingen = 0,
+                                EndReading = endreading
                             };
                             dagVerbruik.UurLijst.Add(uurVerbruikEntry);
                             uurnummer++;
@@ -432,7 +436,8 @@ namespace SlimmeMeterPortaal.ViewModels
                             VerbruiksTijdstip = currentdate,
                             UurNummer = uurnummer,
                             UurVerbruik = 0,
-                            AantalMetingen = 0
+                            AantalMetingen = 0, 
+                            EndReading = endreading
                         };
                         dagVerbruik.UurLijst.Add(uurVerbruikEntry);
                         uurnummer++;
@@ -477,6 +482,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 int uurnummer = 0;
                 int aantalmetingen = 0;
                 decimal uurverbruik = 0;
+                decimal endreading = 0;
                 string uurlabel = uurnummer.ToString("D2") + "-" + (uurnummer + 1).ToString("D2") + " Uur";
                 DateTime currentdate = DateTime.MinValue;
                 string utc = "";
@@ -518,6 +524,10 @@ namespace SlimmeMeterPortaal.ViewModels
                     {
                         continue;
                     }
+                    // Get delivery reading to report End Reading of past hour
+                    int r = Int32.Parse(stroomusage.delivery_reading_combined.Replace(",", "").Replace(".", ""));
+                    decimal rdec = r;
+                    endreading = rdec / 100;
 
                     for (int i = uurnummer; i < currenthour; i++)
                     {
@@ -530,7 +540,8 @@ namespace SlimmeMeterPortaal.ViewModels
                                 VerbruiksTijdstip = currentdate,
                                 UurNummer = uurnummer,
                                 UurVerbruik = uurverbruik,
-                                AantalMetingen = aantalmetingen
+                                AantalMetingen = aantalmetingen,
+                                EndReading = endreading,
                             };
                             dagVerbruik.UurLijst.Add(uurVerbruikEntry);
 
@@ -548,7 +559,8 @@ namespace SlimmeMeterPortaal.ViewModels
                                 VerbruiksTijdstip = currentdate,
                                 UurNummer = uurnummer,
                                 UurVerbruik = 0,
-                                AantalMetingen = 0
+                                AantalMetingen = 0,
+                                EndReading = endreading,
                             };
                             dagVerbruik.UurLijst.Add(uurVerbruikEntry);
                             uurnummer++;
@@ -568,7 +580,8 @@ namespace SlimmeMeterPortaal.ViewModels
                             VerbruiksTijdstip = currentdate,
                             UurNummer = uurnummer,
                             UurVerbruik = 0,
-                            AantalMetingen = 0
+                            AantalMetingen = 0,
+                            EndReading = endreading,
                         };
                         dagVerbruik.UurLijst.Add(uurVerbruikEntry);
                         uurnummer++;
@@ -782,7 +795,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 Min = Statistieken.DagStats.StatNumbers.Min.ToString("N2"),
                 Mean = Statistieken.DagStats.StatNumbers.Mean.ToString("N2"),
                 Max = Statistieken.DagStats.StatNumbers.Max.ToString("N2"),
-                Label = "Dag Totaal",
+                Label = "Dag Totaal (SumUp)",
                 Eenheid = this.Eenheid,
                 Dag1 = this.UurVerbruik[0].TotaalperDag.ToString("N2"),
                 Dag2 = this.UurVerbruik[1].TotaalperDag.ToString("N2"),
@@ -797,9 +810,35 @@ namespace SlimmeMeterPortaal.ViewModels
                 Level4 = Statistieken.GetLevel(this.UurVerbruik[3].TotaalperDag, Statistieken.DagStats.StatNumbers),
                 Level5 = Statistieken.GetLevel(this.UurVerbruik[4].TotaalperDag, Statistieken.DagStats.StatNumbers),
                 Level6 = Statistieken.GetLevel(this.UurVerbruik[5].TotaalperDag, Statistieken.DagStats.StatNumbers),
-                Level7 = Statistieken.GetLevel(this.UurVerbruik[6].TotaalperDag, Statistieken.DagStats.StatNumbers)
+                Level7 = Statistieken.GetLevel(this.UurVerbruik[6].TotaalperDag, Statistieken.DagStats.StatNumbers)                
             };
             this.DagRapport.Add(linex);
+
+            //* add totals based on diff calculation
+            RPT_line linex2 = new RPT_line
+            {                
+                N = "",
+                Min = "",
+                Mean = "",
+                Max = "",
+                Label = "Dag Totaal (Diff)",
+                Eenheid = this.Eenheid,
+                Dag1 = this.UurVerbruik[0].DiffperDag.ToString("N2"),
+                Dag2 = this.UurVerbruik[1].DiffperDag.ToString("N2"),
+                Dag3 = this.UurVerbruik[2].DiffperDag.ToString("N2"),
+                Dag4 = this.UurVerbruik[3].DiffperDag.ToString("N2"),
+                Dag5 = this.UurVerbruik[4].DiffperDag.ToString("N2"),
+                Dag6 = this.UurVerbruik[5].DiffperDag.ToString("N2"),
+                Dag7 = this.UurVerbruik[6].DiffperDag.ToString("N2"),
+                Level1 = 9,
+                Level2 = 9,
+                Level3 = 9,
+                Level4 = 9,
+                Level5 = 9,
+                Level6 = 9,
+                Level7 = 9
+            };
+            this.DagRapport.Add(linex2);
 
             return;
         }
