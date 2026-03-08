@@ -7,9 +7,7 @@ namespace SlimmeMeterPortaal.ViewModels
 {
     public class MaandStats
     {
-        public List<MaandGegeven> MaandGegevens = new List<MaandGegeven>();
-
-        public JaarStats JaarStats = new JaarStats();
+        public List<MaandGegeven> MaandGegevens = new List<MaandGegeven>();            
 
         public int GetLevel(decimal d, MYStatistiek m)
         {
@@ -50,15 +48,8 @@ namespace SlimmeMeterPortaal.ViewModels
 
         public MYStatistiek MaandStatistiek = new MYStatistiek();
     }
-        
-    public class JaarStats
-    {
-        public int AantalWaarnemingen { get { return Jaren.Count; } }
-
-        public List<int> Jaren = new List<int>();
-
-        public MYStatistiek MYStatistiek = new MYStatistiek();
-    }
+     
+    
 
     public class MYStatistiek
     {

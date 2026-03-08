@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Ajax.Utilities;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -114,7 +115,6 @@ namespace SlimmeMeterPortaal.ViewModels
                 return this.MaandStats.GetLevel(this.LastMonthForecast, this.MaandStats.MaandGegevens[maand-1].MaandStatistiek);
             } 
         }
-
         public string LastMonthName { get
             {
                 DateTime lm = DateTime.ParseExact(this.LastMonthDate, "dd-MM-yyyy", null).AddDays(-1);
@@ -122,6 +122,32 @@ namespace SlimmeMeterPortaal.ViewModels
                 return this.MaandArray[maand - 1];
             } 
         }
+        public int LastMonthNumber
+        {
+            get
+            {
+                DateTime lm = DateTime.ParseExact(this.LastMonthDate, "dd-MM-yyyy", null).AddDays(-1);
+                int maand = lm.Month;
+                return maand;
+            }
+        }
+        public decimal LastYearForecast { get; set; }
+        public decimal LastYearLevel { get
+            {
+                return this.MaandStats.GetLevel(this.LastYearForecast, this.MaandStats.MaandGegevens[12].MaandStatistiek);
+            }
+        }
+        public string LastYearName
+        {
+            get
+            {
+                DateTime lm = DateTime.ParseExact(this.LastMonthDate, "dd-MM-yyyy", null).AddDays(-1);
+                int year = lm.Year;
+                return year.ToString("D2");
+            }
+        }
+             
+        
 
         // API call statistics
         public int Total_API_Calls { get; set; } = 0;
@@ -175,6 +201,7 @@ namespace SlimmeMeterPortaal.ViewModels
             public string Maand10 { get; set; }
             public string Maand11 { get; set; }
             public string Maand12 { get; set; }
+            public int Level00 { get; set; }
             public int Level01 { get; set; }
             public int Level02 { get; set; }
             public int Level03 { get; set; }
@@ -842,7 +869,7 @@ namespace SlimmeMeterPortaal.ViewModels
 
             return;
         }
-
+        // Hieronder bgeginnen de maand rapport routines
         public async Task<string> GetSMPmonth(int year, string apikey)
         {
             string datestring;
@@ -892,7 +919,7 @@ namespace SlimmeMeterPortaal.ViewModels
             decimal meterstandtotaal = 0;
                         
             int startyear = this.MaandGasMetingen[0].VerbruiksDatum.Year;
-            int endyear = this.RapportageDatum.Year;
+            int endyear = this.RapportageDatum.Year;            
 
             for (int y = startyear; y <= endyear; y++)
             {
@@ -1028,7 +1055,7 @@ namespace SlimmeMeterPortaal.ViewModels
                     }
                     this.MaandVerbruiken.Add(maandverbruik);
                 }
-            } 
+            }
         }
         public void StroomMaandCijfers()
         {
@@ -1184,13 +1211,20 @@ namespace SlimmeMeterPortaal.ViewModels
 
         public void MonthStats ()
         {
-            for (int i = 0; i < 12; i++)
+            for (int i = 0; i < 13; i++)
             {
-                MaandGegeven MaandGegeven = new MaandGegeven{
-                    Maandnr = i+1,
-                    MaandLabel = this.MaandArray[i],
+               MaandGegeven MaandGegeven = new MaandGegeven
+               {
+                    Maandnr = i + 1,                    
                     AantalWaarnemingen = 0,
                 };
+                if (i < 12) {
+                    MaandGegeven.MaandLabel = this.MaandArray[i];
+                }
+                else
+                {
+                    MaandGegeven.MaandLabel = "jaartotaal"; 
+                }
                 MaandGegeven.MaandStatistiek.Max = int.MinValue;
                 MaandGegeven.MaandStatistiek.Min = int.MaxValue;
                 this.MaandStats.MaandGegevens.Add(MaandGegeven);
@@ -1226,19 +1260,22 @@ namespace SlimmeMeterPortaal.ViewModels
                 this.MaandStats.MaandGegevens[i].MaandStatistiek.Mean = sumup / this.MaandStats.MaandGegevens[i].AantalWaarnemingen;                
             }
 
+            
+            // Create yeartotal statitics in an extra entry 
             decimal Ymin = decimal.MaxValue;
             decimal Ymax = decimal.MinValue;
             decimal Ysum = 0;
+            int N = 0;
             
             foreach (MaandVerbruik m in this.MaandVerbruiken)
             {
-                // Referentie Jaarcijfers
                 if (m.Jaar == this.RapportageDatum.Year)
                 {
                     break;
                 }
-
-                this.MaandStats.JaarStats.Jaren.Add(m.Jaar);
+                N++; // Aantal waarnemingen
+                // Referentie Jaarcijfers
+                
                 Ysum += m.TotaalperJaar;
                 if (m.TotaalperJaar < Ymin)
                 {
@@ -1249,9 +1286,52 @@ namespace SlimmeMeterPortaal.ViewModels
                     Ymax = m.TotaalperJaar;
                 }
             }
-            this.MaandStats.JaarStats.MYStatistiek.Max = Ymax;
-            this.MaandStats.JaarStats.MYStatistiek.Min = Ymin;
-            this.MaandStats.JaarStats.MYStatistiek.Mean = Ysum / this.MaandStats.JaarStats.AantalWaarnemingen;
+            this.MaandStats.MaandGegevens[12].MaandStatistiek.Max = Ymax;
+            this.MaandStats.MaandGegevens[12].MaandStatistiek.Min = Ymin;
+            this.MaandStats.MaandGegevens[12].AantalWaarnemingen = N;
+            this.MaandStats.MaandGegevens[12].MaandStatistiek.Mean = Ysum / this.MaandStats.MaandGegevens[12].AantalWaarnemingen;
+
+            // Tot slot: Bepaal forecast voor het lopende jaar
+            // 1: bepaal gemiddeld totaal per jaar
+            decimal meantotal = 0;
+            foreach (MaandGegeven mg in this.MaandStats.MaandGegevens)
+            {
+                if (mg.MaandLabel == "jaartotaal" )
+                {
+                    break;
+                }
+                meantotal += mg.MaandStatistiek.Mean;
+            }
+            // 2: bepaal gemiddeld totaal t/m de laatste rapportmaand
+            decimal meantonow = 0;                        
+            foreach (MaandGegeven mg in this.MaandStats.MaandGegevens)
+            {
+                if (mg.MaandLabel == "jaartotaal")
+                {
+                    break;
+                }
+                meantonow += mg.MaandStatistiek.Mean;
+                if (mg.Maandnr == this.LastMonthNumber)
+                {
+                    break;
+                }
+            }
+            // 3: bepaal werkelijk totaal t/m de laatste rapportmaand
+            decimal realtonow = 0;
+            int cnt = this.MaandVerbruiken.Count - 2;        // The last entry is "jaartotaal"    
+            foreach (MaandCijfer mc in this.MaandVerbruiken[cnt].MaandCijfers) {                
+                if (mc.MaandNummer == this.LastMonthNumber)
+                {
+                    realtonow += this.LastMonthForecast;
+                    break;
+                }
+                else
+                {
+                    realtonow += mc.Cijfer;
+                }                
+            }
+            // 4: verhouding tussen werkelijk gebruik en gemiddeld gebruike bepaalt de forecast
+            this.LastYearForecast = meantotal * realtonow / meantonow;
 
             return;
         }
@@ -1285,7 +1365,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 Jaar = "",
                 Attribuut = "N",
                 Eenheid = "",
-                Totaal = this.MaandStats.JaarStats.AantalWaarnemingen.ToString("D2"),
+                Totaal = this.MaandStats.MaandGegevens[12].AantalWaarnemingen.ToString("D2"),
                 Maand01 = this.MaandStats.MaandGegevens[0].AantalWaarnemingen.ToString("D2"),
                 Maand02 = this.MaandStats.MaandGegevens[1].AantalWaarnemingen.ToString("D2"),
                 Maand03 = this.MaandStats.MaandGegevens[2].AantalWaarnemingen.ToString("D2"),
@@ -1299,6 +1379,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 Maand11 = this.MaandStats.MaandGegevens[10].AantalWaarnemingen.ToString("D2"),
                 Maand12 = this.MaandStats.MaandGegevens[11].AantalWaarnemingen.ToString("D2"),
 
+                Level00 = 9,
                 Level01 = 9,
                 Level02 = 9,
                 Level03 = 9,
@@ -1319,7 +1400,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 Jaar = "",
                 Attribuut = "Min",
                 Eenheid = this.Eenheid,
-                Totaal = this.MaandStats.JaarStats.MYStatistiek.Min.ToString("N2"),
+                Totaal = this.MaandStats.MaandGegevens[12].MaandStatistiek.Min.ToString("N2"),
                 Maand01 = this.MaandStats.MaandGegevens[0].MaandStatistiek.Min.ToString("N2"),
                 Maand02 = this.MaandStats.MaandGegevens[1].MaandStatistiek.Min.ToString("N2"),
                 Maand03 = this.MaandStats.MaandGegevens[2].MaandStatistiek.Min.ToString("N2"),
@@ -1333,6 +1414,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 Maand11 = this.MaandStats.MaandGegevens[10].MaandStatistiek.Min.ToString("N2"),
                 Maand12 = this.MaandStats.MaandGegevens[11].MaandStatistiek.Min.ToString("N2"),
 
+                Level00 = 9,
                 Level01 = 9,
                 Level02 = 9,
                 Level03 = 9, 
@@ -1353,7 +1435,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 Jaar = "",
                 Attribuut = "Mean",
                 Eenheid = this.Eenheid,
-                Totaal = this.MaandStats.JaarStats.MYStatistiek.Mean.ToString("N2"),
+                Totaal = this.MaandStats.MaandGegevens[12].MaandStatistiek.Mean.ToString("N2"),
                 Maand01 = this.MaandStats.MaandGegevens[0].MaandStatistiek.Mean.ToString("N2"),
                 Maand02 = this.MaandStats.MaandGegevens[1].MaandStatistiek.Mean.ToString("N2"),
                 Maand03 = this.MaandStats.MaandGegevens[2].MaandStatistiek.Mean.ToString("N2"),
@@ -1367,6 +1449,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 Maand11 = this.MaandStats.MaandGegevens[10].MaandStatistiek.Mean.ToString("N2"),
                 Maand12 = this.MaandStats.MaandGegevens[11].MaandStatistiek.Mean.ToString("N2"),
 
+                Level00 = 9,
                 Level01 = 9,
                 Level02 = 9,
                 Level03 = 9,
@@ -1387,7 +1470,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 Jaar = "",
                 Attribuut = "Max",
                 Eenheid = this.Eenheid,
-                Totaal = this.MaandStats.JaarStats.MYStatistiek.Max.ToString("N2"),
+                Totaal = this.MaandStats.MaandGegevens[12].MaandStatistiek.Max.ToString("N2"),
                 Maand01 = this.MaandStats.MaandGegevens[0].MaandStatistiek.Max.ToString("N2"),
                 Maand02 = this.MaandStats.MaandGegevens[1].MaandStatistiek.Max.ToString("N2"),
                 Maand03 = this.MaandStats.MaandGegevens[2].MaandStatistiek.Max.ToString("N2"),
@@ -1401,6 +1484,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 Maand11 = this.MaandStats.MaandGegevens[10].MaandStatistiek.Max.ToString("N2"),
                 Maand12 = this.MaandStats.MaandGegevens[11].MaandStatistiek.Max.ToString("N2"),
 
+                Level00 = 9,
                 Level01 = 9,
                 Level02 = 9,
                 Level03 = 9,
@@ -1438,6 +1522,7 @@ namespace SlimmeMeterPortaal.ViewModels
                     Maand11 = (m.MaandCijfers[10].Cijfer == 0) ? "n/a" : m.MaandCijfers[10].Cijfer.ToString("N2"),
                     Maand12 = (m.MaandCijfers[11].Cijfer == 0) ? "n/a" : m.MaandCijfers[11].Cijfer.ToString("N2"),
 
+                    Level00 = (m.TotaalperJaar == 0) ? 9 : this.MaandStats.GetLevel(m.TotaalperJaar, this.MaandStats.MaandGegevens[12].MaandStatistiek),
                     Level01 = (m.MaandCijfers[0].Cijfer == 0) ? 9 : this.MaandStats.GetLevel(m.MaandCijfers[0].Cijfer, this.MaandStats.MaandGegevens[0].MaandStatistiek),
                     Level02 = (m.MaandCijfers[1].Cijfer == 0) ? 9 : this.MaandStats.GetLevel(m.MaandCijfers[1].Cijfer, this.MaandStats.MaandGegevens[1].MaandStatistiek),
                     Level03 = (m.MaandCijfers[2].Cijfer == 0) ? 9 : this.MaandStats.GetLevel(m.MaandCijfers[2].Cijfer, this.MaandStats.MaandGegevens[2].MaandStatistiek),

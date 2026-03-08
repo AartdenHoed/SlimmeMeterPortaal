@@ -149,11 +149,10 @@ namespace SlimmeMeterPortaal.ViewModels
                 }
             else 
             {
-                string[] formats = { "yyyy-MM-dd" };
-                DateTime testdate;
+                string[] formats = { "yyyy-MM-dd" };                
                 if (!DateTime.TryParseExact(this.Rapportagestringdatum, formats,
                                         System.Globalization.CultureInfo.InvariantCulture,
-                                        System.Globalization.DateTimeStyles.None, out testdate))
+                                        System.Globalization.DateTimeStyles.None, out DateTime testdate))
                 {
                     result = "Ongeldige datum - geef datum in het format yyyy-MM-dd.";
                 }

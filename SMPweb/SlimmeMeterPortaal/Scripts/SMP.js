@@ -45,7 +45,7 @@ function SetLevels() {
                 syuse[i].style.backgroundColor = "darkgreen";
                 break;
             case '9':
-                //alert("darkgreen");
+                //alert("grey");
                 break;
             default:
                 alert("None???");

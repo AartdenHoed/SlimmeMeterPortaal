@@ -169,7 +169,7 @@
             {
                 if ((item.ReportDevice) && (item.MaandRapport.Count != 0))
                 {
-                    
+
                     <h4 id="@(item.DeviceType)">
                         @Html.DisplayFor(modelItem => item.ReportType)
                         - Overzicht tot en met
@@ -251,8 +251,9 @@
                                     <td>
                                         @Html.DisplayFor(modelItem => item2.Eenheid)
                                     </td>
-                                    <td>
+                                    <td class="sy-use">
                                         @Html.DisplayFor(modelItem => item2.Totaal)
+                                        @Html.HiddenFor(modelItem => item2.Level00, new { @class = "sy-level" })
                                     </td>
                                     <td class="sy-use">
                                         @Html.DisplayFor(modelItem => item2.Maand01)
@@ -316,11 +317,19 @@
                         </span>
                         @Html.DisplayFor(modelItem => item.Eenheid)
                     </p>
+                    <p>
+                        Forecast voor het laatste jaar (@Html.DisplayFor(modelItem => item.LastYearName)):
+                        <span class="sy-use">
+                            @Html.DisplayFor(modelItem => item.LastYearForecast)
+                            @Html.HiddenFor(modelItem => item.LastYearLevel, new { @class = "sy-level" })
+                        </span>
+                        @Html.DisplayFor(modelItem => item.Eenheid)
+                    </p>
                     <p> &nbsp;</p>
                     <h4 class="smp-title">
                         @Html.DisplayFor(modelItem => item.ReportType)
                         - Meterstanden per eerste van elke maand
-                    </h4>                    
+                    </h4>
                     @:<table class="sy-dagrpt">
                         var j = 0;
                         foreach (var item2 in item.Meterstanden)
