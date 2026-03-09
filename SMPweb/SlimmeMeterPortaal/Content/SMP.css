@@ -26,6 +26,7 @@ h2, h3 {
     box-sizing: border-box;
     float: left;
     margin: 0;
+    padding: 0;
     background-color: darkblue;
     background-size: cover;
     
@@ -63,26 +64,26 @@ h2, h3 {
 }
 .leftcol {
     width: 14%;
-    height: 90%;
+    height: 91%;
     box-sizing: border-box;
     float: left;
     margin-right: 0.5%;
     margin-left: 0.5%;
     margin-top: 0.5%;
     padding-left: 0.5%;
-    top: 5%;
+    top: 4%;
     position: fixed;
 }
 .midcol {
-    width: 84%;
-    height: 90%;
+    width: 84.5%;
+    height: 91%;
     box-sizing: border-box;
     float: right;
     margin: 0;
     margin-top: 0.5%;
     margin-right: 0.5%;
     left: 15%;
-    top: 5%;
+    top: 4%;
     position: fixed;
 }
 #content {

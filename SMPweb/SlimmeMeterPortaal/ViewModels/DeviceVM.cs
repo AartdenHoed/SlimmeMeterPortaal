@@ -1318,7 +1318,7 @@ namespace SlimmeMeterPortaal.ViewModels
             }
             // 3: bepaal werkelijk totaal t/m de laatste rapportmaand
             decimal realtonow = 0;
-            int cnt = this.MaandVerbruiken.Count - 2;        // The last entry is "jaartotaal"    
+            int cnt = this.MaandVerbruiken.Count - 1;           
             foreach (MaandCijfer mc in this.MaandVerbruiken[cnt].MaandCijfers) {                
                 if (mc.MaandNummer == this.LastMonthNumber)
                 {
