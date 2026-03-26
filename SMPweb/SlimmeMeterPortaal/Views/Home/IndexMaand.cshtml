@@ -2,14 +2,14 @@
     &nbsp;
     <ul class="menu">
         &nbsp;
-        <li>@Html.ActionLink("Dagrapport", "Index", "Home")</li>
-        <li>@Html.ActionLink("Maandrapport", "IndexM", "Home")</li>        
+        <li>@Html.ActionLink("Dagrapport", "IndexDag", "Home")</li>
+        <li>@Html.ActionLink("Maandrapport", "IndexMaand", "Home")</li>        
     </ul>
 
 </div>
 <div class="midcol" id="content">
     <div class="controller">
-        @model SlimmeMeterPortaal.ViewModels.SMP_Report
+        @model SlimmeMeterPortaal.ViewModels.SmpViewModel
 
         @using (Html.BeginForm())
         {
@@ -18,57 +18,57 @@
 
             <div class="form-horizontal">
                 <h2 id="top">
-                    @Html.DisplayFor(model => model.Message.Title) &nbsp;
+                    @Html.DisplayFor(model => model.MessageViewModel.Title) &nbsp;
                 </h2>
                 <p>
-                    @Html.DisplayFor(model => model.Message.Tekst) &nbsp;
+                    @Html.DisplayFor(model => model.MessageViewModel.Tekst) &nbsp;
                 </p>
                 <hr />
                 <table class="sy-table">
-                    @if (Model.Devicelijst != null)
+                    @if (Model.VerbruiksMeters != null)
                     {
-                        var j = Model.Devicelijst.Count;
+                        var j = Model.VerbruiksMeters.Count;
 
                         for (var i = 0;  i < j; i++)
                         {
                             if (i == 0)
                             {
                                 <tr>
-                                    <th>@Html.DisplayNameFor(model => model.Devicelijst[i].ReportDevice)</th>
+                                    <th>@Html.DisplayNameFor(model => model.VerbruiksMeters[i].MeterRapportMaken)</th>
                                     <th>
-                                        @Html.DisplayNameFor(model => model.Devicelijst[i].DeviceType)
+                                        @Html.DisplayNameFor(model => model.VerbruiksMeters[i].MeterType)
                                     </th>
                                     <th>
-                                        @Html.DisplayNameFor(model => model.Devicelijst[i].DeviceID)
+                                        @Html.DisplayNameFor(model => model.VerbruiksMeters[i].MeterIdentificatie)
                                     </th>
                                     <th>
-                                        @Html.DisplayNameFor(model => model.Devicelijst[i].Startdate)
+                                        @Html.DisplayNameFor(model => model.VerbruiksMeters[i].Startdate)
                                     </th>
                                     <th>
-                                        @Html.DisplayNameFor(model => model.Devicelijst[i].LastDateWithData)
+                                        @Html.DisplayNameFor(model => model.VerbruiksMeters[i].LastDateWithData)
                                     </th>
                                 </tr>
                             }
                             
                 <tr>
                     <td>
-                        @Html.CheckBoxFor(model => model.Devicelijst[i].ReportDevice,
+                        @Html.CheckBoxFor(model => model.VerbruiksMeters[i].MeterRapportMaken,
                                 new { @class = "sy-input", @onclick = "Includeit(this)" })
-                        @Html.ValidationMessageFor(model => model.Devicelijst[i].ReportDevice, "", new { @class = "text-danger" })
+                        @Html.ValidationMessageFor(model => model.VerbruiksMeters[i].MeterRapportMaken, "", new { @class = "text-danger" })
                     </td>
                     <td>
-                        @Html.DisplayFor(model => model.Devicelijst[i].DeviceType)
+                        @Html.DisplayFor(model => model.VerbruiksMeters[i].MeterType)
 
                     </td>
                     <td>
-                        @Html.DisplayFor(model => model.Devicelijst[i].DeviceID)
+                        @Html.DisplayFor(model => model.VerbruiksMeters[i].MeterIdentificatie)
 
                     </td>
                     <td>
-                        @Html.DisplayFor(model => model.Devicelijst[i].Startdate)
+                        @Html.DisplayFor(model => model.VerbruiksMeters[i].Startdate)
                     </td>
                     <td>
-                        @Html.DisplayFor(model => model.Devicelijst[i].LastDateWithData)
+                        @Html.DisplayFor(model => model.VerbruiksMeters[i].LastDateWithData)
                     </td>
                 </tr>
 
@@ -79,11 +79,11 @@
                 @Html.ValidationSummary(true, "", new { @class = "text-danger" })
             <dl class="sy-dl">
                 <dt class="sy-dt">
-                    @Html.LabelFor(model => model.Rapportagestringdatum)
+                    @Html.LabelFor(model => model.RapportageDatumString)
                 </dt>
                 <dd class="sy-dd">
-                    @Html.EditorFor(model => model.Rapportagestringdatum, new { htmlAttributes = new { @class = "sy-input", @autofocus = "autofocus" } })
-                    @Html.ValidationMessageFor(model => model.Rapportagestringdatum, "", new { @class = "text-danger" })
+                    @Html.EditorFor(model => model.RapportageDatumString, new { htmlAttributes = new { @class = "sy-input", @autofocus = "autofocus" } })
+                    @Html.ValidationMessageFor(model => model.RapportageDatumString, "", new { @class = "text-danger" })
                 </dd>
 
                 <dt class="sy-dt">

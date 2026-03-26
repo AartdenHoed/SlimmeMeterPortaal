@@ -1,5 +1,4 @@
-﻿using Microsoft.Ajax.Utilities;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,42 +10,55 @@ using System.Threading.Tasks;
 
 namespace SlimmeMeterPortaal.ViewModels
 {
-    public class DeviceVM 
+    public class VerbruiksMeter 
     {
-        public DeviceVM(string devtype, string gas, string stroom)
+        public VerbruiksMeter(string devtype, string gas, string stroom)
         {
-            this.DeviceType = devtype;
+            this.MeterType = devtype;
             if (devtype == "elektriciteit")
             {
                 if (stroom == "Y")
                 { 
-                    this.ReportDevice = true; 
+                    this.MeterRapportMaken = true; 
                 }
                 else
                 {
-                    this.ReportDevice = false;
+                    this.MeterRapportMaken = false;
                 }
             }
             if (devtype == "gas")
             {
                 if (gas == "Y")
                 {
-                    this.ReportDevice = true;
+                    this.MeterRapportMaken = true;
                 }
                 else
                 {
-                    this.ReportDevice = false;
+                    this.MeterRapportMaken = false;
                 }
             }
         }
-        [DisplayName("Meenemen in rapportage")]
-        public bool ReportDevice { get; set; } 
+        [DisplayName("Verbruiksmeter type")]
+        public string MeterType { get; set; }
+        public string RapportLabel
+        {
+            get
+            { return this.MeterType[0].ToString().ToUpper() + this.MeterType.Substring(1); }
+        }
 
         [DisplayName("Meter identificatie")]
-        public string DeviceID { get; set; }
+        public string MeterIdentificatie { get; set; }
 
-        [DisplayName("Meter type")]
-        public string DeviceType { get; set; }
+        [DisplayName("Meter start datum")]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
+        [DataType(DataType.DateTime)]
+        public System.DateTime Startdate { get; set; }
+
+        [DisplayName("Meter eind datum")]
+        public Nullable<System.DateTime> Enddate { get; set; }
+
+        [DisplayName("Meenemen in rapportage")]
+        public bool MeterRapportMaken { get; set; } 
 
         [DisplayName("Laatste datum met data")]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
@@ -62,7 +74,7 @@ namespace SlimmeMeterPortaal.ViewModels
         {
             get
             {
-                if (this.DeviceType == "gas")
+                if (this.MeterType == "gas")
                 {
                     return "m3";
                 }
@@ -71,40 +83,26 @@ namespace SlimmeMeterPortaal.ViewModels
                     return "KwH";
                 }
             }
-        }
-
-        public string ReportType
-        {
-            get
-            { return this.DeviceType[0].ToString().ToUpper() + this.DeviceType.Substring(1); }        
-        }
-
-        [DisplayName("Meter start datum")]
-        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
-        [DataType(DataType.DateTime)]
-        public System.DateTime Startdate { get; set; }
-
-        [DisplayName("Meter eind datum")]
-        public Nullable<System.DateTime> Enddate { get; set; }
+        }     
 
         // Lijsten met ruwe meter data
-        public List<GasMetingen> ReferenceGasMetingen = new List<GasMetingen>();
-        public List<StroomMetingen> ReferenceStroomMetingen = new List<StroomMetingen>();
-        public List<GasMetingen> UsageGasMetingen = new List<GasMetingen>();
-        public List<StroomMetingen> UsageStroomMetingen = new List<StroomMetingen>();
-        public List<GasMetingen> MaandGasMetingen = new List<GasMetingen>();
-        public List<StroomMetingen> MaandStroomMetingen = new List<StroomMetingen>();
+        public List<RawGasDagMeting> ReferenceGasDagMetingLijst = new List<RawGasDagMeting>();
+        public List<RawStroomDagMeting> ReferenceStroomMetingen = new List<RawStroomDagMeting>();
+        public List<RawGasDagMeting> UsageGasDagMetingLijst = new List<RawGasDagMeting>();
+        public List<RawStroomDagMeting> UsageStroomMetingen = new List<RawStroomDagMeting>();
+        public List<RawGasDagMeting> MaandGasDagMetingLijst = new List<RawGasDagMeting>();
+        public List<RawStroomDagMeting> MaandStroomMetingen = new List<RawStroomDagMeting>();
 
         // Lijsten met per uur geconsolideerde data 
-        public List<DagVerbruik> UurVerbruik = new List<DagVerbruik>();
-        public List<DagVerbruik> UurReference = new List<DagVerbruik>();
+        public List<DagVerbruik> DagVerbruiken = new List<DagVerbruik>();
+        public List<DagVerbruik> ReferenceDagVerbruiken = new List<DagVerbruik>();
         
         // Lijsten met statistieken 
-        public Stats Statistieken = new Stats();
+        public DagRapportStatistieken DagRapportStatistieken = new DagRapportStatistieken();
 
         // Lijsten met maandverbruik per jaar
-        public List<MaandVerbruik> MaandVerbruiken = new List<MaandVerbruik>() ;
-        public MaandStats MaandStats = new MaandStats();
+        public List<MaandVerbruikLijst> MaandVerbruiken = new List<MaandVerbruikLijst>() ;
+        public MaandRapportStatistieken MaandRapportStatistieken = new MaandRapportStatistieken();
         private readonly string[] MaandArray = { "Jan", "Feb", "Mrt", "Apr", "Mei", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec" };
         public string LastMonthDate {  get; set; }
         public decimal LastMonthForecast { get; set; }  
@@ -112,7 +110,7 @@ namespace SlimmeMeterPortaal.ViewModels
             {
                 DateTime lm = DateTime.ParseExact(this.LastMonthDate, "dd-MM-yyyy", null);
                 int maand = lm.Month;
-                return this.MaandStats.GetLevel(this.LastMonthForecast, this.MaandStats.MaandGegevens[maand-1].MaandStatistiek);
+                return this.MaandRapportStatistieken.GetLevel(this.LastMonthForecast, this.MaandRapportStatistieken.MaandGegevens[maand-1].StatistiekWaardenM);
             } 
         }
         public string LastMonthName { get
@@ -134,7 +132,7 @@ namespace SlimmeMeterPortaal.ViewModels
         public decimal LastYearForecast { get; set; }
         public decimal LastYearLevel { get
             {
-                return this.MaandStats.GetLevel(this.LastYearForecast, this.MaandStats.MaandGegevens[12].MaandStatistiek);
+                return this.MaandRapportStatistieken.GetLevel(this.LastYearForecast, this.MaandRapportStatistieken.MaandGegevens[12].StatistiekWaardenM);
             }
         }
         public string LastYearName
@@ -235,9 +233,10 @@ namespace SlimmeMeterPortaal.ViewModels
             public string Maand12 { get; set; }
         }
 
-        public async Task<string> GetSMPday(string datestring, string apikey, string listtype)
+        // Hierna algemene methods
+        public async Task<string> HaalEenDagRuwVerbruik(string datestring, string apikey, string listtype)
         {
-            string url = "https://app.slimmemeterportal.nl/userapi/v1/connections/" + this.DeviceID.Trim() + "/usage/" + datestring;
+            string url = "https://app.slimmemeterportal.nl/userapi/v1/connections/" + this.MeterIdentificatie.Trim() + "/usage/" + datestring;
 
             int retrycount = 0;
             string result;
@@ -255,16 +254,16 @@ namespace SlimmeMeterPortaal.ViewModels
                 HttpResponseMessage response = await httpClient.SendAsync(request);
                 if (response.IsSuccessStatusCode)
                 {
-                    result = "Ok";                    
+                    result = "Ok";
                     responseString = await response.Content.ReadAsStringAsync();
                 }
                 else
-                {                    
+                {
                     result = "Nok";
                     retrycount += 1;
                     Thread.Sleep(10000);
-                }                  
-                
+                }
+
             }
             while ((result != "Ok") && (retrycount < 10));
 
@@ -279,7 +278,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 else
                 {
                     this.Total_API_Calls_Retried += 1;
-                    this.Total_Retries += retrycount; 
+                    this.Total_Retries += retrycount;
                 }
 
             }
@@ -288,48 +287,50 @@ namespace SlimmeMeterPortaal.ViewModels
                 Total_API_Calls_Failed += 1;
                 this.Total_Retries += retrycount;
             }
-            
+
             if (result == "Ok")
-            {                
+            {
                 // Parse the response body
 
-                switch (this.DeviceType)
+                switch (this.MeterType)
                 {
                     case "gas":
-                        GasMetingen gasVerbruik = new GasMetingen
+                        RawGasDagMeting gasVerbruik = new RawGasDagMeting
                         {
-                            DeviceID = this.DeviceID,
+                            MeterIdentificatie = this.MeterIdentificatie,
                             VerbruiksDatum = DateTime.ParseExact(datestring, "dd-MM-yyyy", null),
-                            MetingLijst = JsonConvert.DeserializeObject<GasDagMeting>(responseString)
+                            GasTimeSlotMetingLijst = JsonConvert.DeserializeObject<GasTimeSlotMetingLijst>(responseString)
                         };
                         switch (listtype)
                         {
                             case "Lastdate":
-                                if (gasVerbruik.MetingLijst.usages.Count > 0) { result = "Last"; };
+                                if (gasVerbruik.GasTimeSlotMetingLijst.usages.Count > 0) { result = "Last"; }
+                                ;
                                 break;
                             case "Usage":
-                                this.UsageGasMetingen.Add(gasVerbruik);
+                                this.UsageGasDagMetingLijst.Add(gasVerbruik);
                                 break;
                             case "Reference":
-                                this.ReferenceGasMetingen.Add(gasVerbruik);
+                                this.ReferenceGasDagMetingLijst.Add(gasVerbruik);
                                 break;
                             case "Month":
-                                this.MaandGasMetingen.Add(gasVerbruik);
+                                this.MaandGasDagMetingLijst.Add(gasVerbruik);
                                 break;
                         }
                         break;
 
                     case "elektriciteit":
-                        StroomMetingen stroomVerbruik = new StroomMetingen
+                        RawStroomDagMeting stroomVerbruik = new RawStroomDagMeting
                         {
-                            DeviceID = this.DeviceID,
+                            MeterIdentificatie = this.MeterIdentificatie,
                             VerbruiksDatum = DateTime.ParseExact(datestring, "dd-MM-yyyy", null),
-                            MetingLijst = JsonConvert.DeserializeObject<StroomDagMeting>(responseString)
+                            StroomTimeSlotMetingLijst = JsonConvert.DeserializeObject<StroomTimeSlotMetingLijst>(responseString)
                         };
                         switch (listtype)
                         {
                             case "Lastdate":
-                                if (stroomVerbruik.MetingLijst.usages.Count > 0) { result = "Last"; };
+                                if (stroomVerbruik.StroomTimeSlotMetingLijst.usages.Count > 0) { result = "Last"; }
+                                ;
                                 break;
                             case "Usage":
                                 this.UsageStroomMetingen.Add(stroomVerbruik);
@@ -339,39 +340,39 @@ namespace SlimmeMeterPortaal.ViewModels
                                 break;
                             case "Month":
                                 this.MaandStroomMetingen.Add(stroomVerbruik);
-                                break;                                
+                                break;
                         }
                         break;
 
                     default:
-                        throw new Exception("Unknown device type " + this.DeviceType);
+                        throw new Exception("Unknown device type " + this.MeterType);
 
                 }
-                
+
             }
             return result;
 
 
-        }       
+        }
         public void GasConsolidatie(string listtype)
         {
-            List<GasMetingen> listIN;
+            List<RawGasDagMeting> listIN;
             if (listtype == "Usage")
             {
-                listIN = this.UsageGasMetingen;  
+                listIN = this.UsageGasDagMetingLijst;  
             }
             else
             {
-                listIN = this.ReferenceGasMetingen;
+                listIN = this.ReferenceGasDagMetingLijst;
             }     
 
-            foreach (GasMetingen gasverbruik in listIN)
+            foreach (RawGasDagMeting gasverbruik in listIN)
             {
                 DagVerbruik dagVerbruik = new DagVerbruik
                 {
                     VerbruiksDatum = gasverbruik.VerbruiksDatum,
                     VerbruiksType = "Gas",
-                    DeviceID = gasverbruik.DeviceID
+                    MeterIdentificatie = gasverbruik.MeterIdentificatie
                 };
 
                 int verbruiksdag = gasverbruik.VerbruiksDatum.Day;
@@ -383,17 +384,17 @@ namespace SlimmeMeterPortaal.ViewModels
                 DateTime currentdate = DateTime.MinValue;
                 string utc = ""; 
 
-                foreach (GasUsage gasusage in gasverbruik.MetingLijst.usages)
+                foreach (GasTimeSlotMeting gastimeslotmeting in gasverbruik.GasTimeSlotMetingLijst.usages)
                 {
-                    currentdate = DateTime.ParseExact(gasusage.time.Substring(0, 19), "dd-MM-yyyy HH:mm:ss", null);
-                    utc = gasusage.time.Substring(20,3);
+                    currentdate = DateTime.ParseExact(gastimeslotmeting.time.Substring(0, 19), "dd-MM-yyyy HH:mm:ss", null);
+                    utc = gastimeslotmeting.time.Substring(20,3);
                     int currenthour = currentdate.Hour;
                     int currentday = currentdate.Day;
                     if (currentday != verbruiksdag)
                     {
                         currenthour = 24;
                     }
-                    int d = Int32.Parse(gasusage.delivery.Replace(",", "").Replace(".", ""));
+                    int d = Int32.Parse(gastimeslotmeting.delivery.Replace(",", "").Replace(".", ""));
                     decimal ddec = d;
                     decimal delivery = ddec / 100;
                     uurverbruik += delivery;
@@ -405,7 +406,7 @@ namespace SlimmeMeterPortaal.ViewModels
                         continue;
                     }
                     // Get delivery reading to report End Reading of past hour
-                    int r = Int32.Parse(gasusage.delivery_reading.Replace(",", "").Replace(".", ""));
+                    int r = Int32.Parse(gastimeslotmeting.delivery_reading.Replace(",", "").Replace(".", ""));
                     decimal rdec = r;
                     endreading = rdec / 100;
 
@@ -414,17 +415,17 @@ namespace SlimmeMeterPortaal.ViewModels
                         if ((uurnummer + 1) == currenthour)
                         // Next hour starts here, so output current hour
                         {
-                            UurVerbruikEntry uurVerbruikEntry = new UurVerbruikEntry()
+                            UurVerbruik UurVerbruik = new UurVerbruik()
                             {
                                 UurLabel = uurlabel,
                                 UTC = utc,
                                 VerbruiksTijdstip = currentdate,
                                 UurNummer = uurnummer,
-                                UurVerbruik = uurverbruik,
+                                Waarde = uurverbruik,
                                 AantalMetingen = aantalmetingen,
                                 EndReading = endreading,
                             };
-                            dagVerbruik.UurLijst.Add(uurVerbruikEntry);
+                            dagVerbruik.UurVerbruiken.Add(UurVerbruik);
 
                             uurnummer++;
                             aantalmetingen = 0;
@@ -434,17 +435,17 @@ namespace SlimmeMeterPortaal.ViewModels
                         else
                         {
                             // Apparantly we are missing an hour, so just output a zero hour usage
-                            UurVerbruikEntry uurVerbruikEntry = new UurVerbruikEntry()
+                            UurVerbruik UurVerbruik = new UurVerbruik()
                             {
                                 UurLabel = uurlabel,
                                 UTC = utc,
                                 VerbruiksTijdstip = currentdate,
                                 UurNummer = uurnummer,
-                                UurVerbruik = 0,
+                                Waarde = 0,
                                 AantalMetingen = 0,
                                 EndReading = endreading
                             };
-                            dagVerbruik.UurLijst.Add(uurVerbruikEntry);
+                            dagVerbruik.UurVerbruiken.Add(UurVerbruik);
                             uurnummer++;
                             uurlabel = uurnummer.ToString("D2") + "-" + (uurnummer + 1).ToString("D2") + " Uur";
                         }
@@ -456,17 +457,17 @@ namespace SlimmeMeterPortaal.ViewModels
                     for (int i = uurnummer; i < 24; i++)
                     {
                         uurlabel = uurnummer.ToString("D2") + "-" + (uurnummer + 1).ToString("D2") + " Uur";
-                        UurVerbruikEntry uurVerbruikEntry = new UurVerbruikEntry()
+                        UurVerbruik UurVerbruik = new UurVerbruik()
                         {
                             UurLabel = uurlabel,
                             UTC = utc,
                             VerbruiksTijdstip = currentdate,
                             UurNummer = uurnummer,
-                            UurVerbruik = 0,
+                            Waarde = 0,
                             AantalMetingen = 0, 
                             EndReading = endreading
                         };
-                        dagVerbruik.UurLijst.Add(uurVerbruikEntry);
+                        dagVerbruik.UurVerbruiken.Add(UurVerbruik);
                         uurnummer++;
 
                     }
@@ -474,11 +475,11 @@ namespace SlimmeMeterPortaal.ViewModels
                 }
                 if (listtype == "Usage")
                 {
-                    this.UurVerbruik.Add(dagVerbruik);
+                    this.DagVerbruiken.Add(dagVerbruik);
                 }
                 else
                 {
-                    this.UurReference.Add(dagVerbruik);
+                    this.ReferenceDagVerbruiken.Add(dagVerbruik);
                 }                
             }
 
@@ -486,7 +487,7 @@ namespace SlimmeMeterPortaal.ViewModels
         }
         public void StroomConsolidatie(string listtype)
         {
-            List<StroomMetingen> listIN;
+            List<RawStroomDagMeting> listIN;
             if (listtype == "Usage")
             {
                 listIN = this.UsageStroomMetingen;
@@ -496,13 +497,13 @@ namespace SlimmeMeterPortaal.ViewModels
                 listIN = this.ReferenceStroomMetingen;
             }
 
-            foreach (StroomMetingen stroomverbruik in listIN)
+            foreach (RawStroomDagMeting stroomverbruik in listIN)
             {
                 DagVerbruik dagVerbruik = new DagVerbruik
                 {
                     VerbruiksDatum = stroomverbruik.VerbruiksDatum,
                     VerbruiksType = "Stroom",
-                    DeviceID = stroomverbruik.DeviceID
+                    MeterIdentificatie = stroomverbruik.MeterIdentificatie
                 };
 
                 int verbruiksdag = stroomverbruik.VerbruiksDatum.Day;
@@ -514,10 +515,10 @@ namespace SlimmeMeterPortaal.ViewModels
                 DateTime currentdate = DateTime.MinValue;
                 string utc = "";
 
-                foreach (StroomUsage stroomusage in stroomverbruik.MetingLijst.usages)
+                foreach (StroomTimeSlotMeting stroomtimeslotmeting in stroomverbruik.StroomTimeSlotMetingLijst.usages)
                 {
-                    currentdate = DateTime.ParseExact(stroomusage.time.Substring(0, 19), "dd-MM-yyyy HH:mm:ss", null);
-                    utc = stroomusage.time.Substring(20, 3);
+                    currentdate = DateTime.ParseExact(stroomtimeslotmeting.time.Substring(0, 19), "dd-MM-yyyy HH:mm:ss", null);
+                    utc = stroomtimeslotmeting.time.Substring(20, 3);
                     int currenthour = currentdate.Hour;
                     int currentday = currentdate.Day;
                     int d1;
@@ -526,21 +527,21 @@ namespace SlimmeMeterPortaal.ViewModels
                     {
                         currenthour = 24;
                     }
-                    if (string.IsNullOrEmpty(stroomusage.delivery_high))
+                    if (string.IsNullOrEmpty(stroomtimeslotmeting.delivery_high))
                     {
                         d1 = 0;
                     }
                     else
                     {
-                        d1 = Int32.Parse(stroomusage.delivery_high.Replace(",", "").Replace(".", ""));
+                        d1 = Int32.Parse(stroomtimeslotmeting.delivery_high.Replace(",", "").Replace(".", ""));
                     }
-                    if (string.IsNullOrEmpty(stroomusage.delivery_low))
+                    if (string.IsNullOrEmpty(stroomtimeslotmeting.delivery_low))
                     {
                         d2 = 0;
                     }
                     else
                     {
-                        d2 = Int32.Parse(stroomusage.delivery_low.Replace(",", "").Replace(".", ""));
+                        d2 = Int32.Parse(stroomtimeslotmeting.delivery_low.Replace(",", "").Replace(".", ""));
                     }
                     decimal ddec1 = d1;
                     decimal ddec2 = d2;
@@ -552,7 +553,7 @@ namespace SlimmeMeterPortaal.ViewModels
                         continue;
                     }
                     // Get delivery reading to report End Reading of past hour
-                    int r = Int32.Parse(stroomusage.delivery_reading_combined.Replace(",", "").Replace(".", ""));
+                    int r = Int32.Parse(stroomtimeslotmeting.delivery_reading_combined.Replace(",", "").Replace(".", ""));
                     decimal rdec = r;
                     endreading = rdec / 100;
 
@@ -560,17 +561,17 @@ namespace SlimmeMeterPortaal.ViewModels
                     {
                         if ((uurnummer + 1) == currenthour)
                         {
-                            UurVerbruikEntry uurVerbruikEntry = new UurVerbruikEntry()
+                            UurVerbruik UurVerbruik = new UurVerbruik()
                             {
                                 UurLabel = uurlabel,
                                 UTC = utc,
                                 VerbruiksTijdstip = currentdate,
                                 UurNummer = uurnummer,
-                                UurVerbruik = uurverbruik,
+                                Waarde = uurverbruik,
                                 AantalMetingen = aantalmetingen,
                                 EndReading = endreading,
                             };
-                            dagVerbruik.UurLijst.Add(uurVerbruikEntry);
+                            dagVerbruik.UurVerbruiken.Add(UurVerbruik);
 
                             uurnummer++;
                             aantalmetingen = 0;
@@ -579,17 +580,17 @@ namespace SlimmeMeterPortaal.ViewModels
                         }
                         else
                         {
-                            UurVerbruikEntry uurVerbruikEntry = new UurVerbruikEntry()
+                            UurVerbruik UurVerbruik = new UurVerbruik()
                             {
                                 UurLabel = uurlabel,
                                 UTC = utc,
                                 VerbruiksTijdstip = currentdate,
                                 UurNummer = uurnummer,
-                                UurVerbruik = 0,
+                                Waarde = 0,
                                 AantalMetingen = 0,
                                 EndReading = endreading,
                             };
-                            dagVerbruik.UurLijst.Add(uurVerbruikEntry);
+                            dagVerbruik.UurVerbruiken.Add(UurVerbruik);
                             uurnummer++;
                             uurlabel = uurnummer.ToString("D2") + "-" + (uurnummer + 1).ToString("D2") + " Uur";
                         }
@@ -600,17 +601,17 @@ namespace SlimmeMeterPortaal.ViewModels
                     for (int i = uurnummer; i < 24; i++)
                     {
                         uurlabel = uurnummer.ToString("D2") + "-" + (uurnummer + 1).ToString("D2") + " Uur";
-                        UurVerbruikEntry uurVerbruikEntry = new UurVerbruikEntry()
+                        UurVerbruik UurVerbruik = new UurVerbruik()
                         {
                             UurLabel = uurlabel,
                             UTC = utc,
                             VerbruiksTijdstip = currentdate,
                             UurNummer = uurnummer,
-                            UurVerbruik = 0,
+                            Waarde = 0,
                             AantalMetingen = 0,
                             EndReading = endreading,
                         };
-                        dagVerbruik.UurLijst.Add(uurVerbruikEntry);
+                        dagVerbruik.UurVerbruiken.Add(UurVerbruik);
                         uurnummer++;
 
                     }
@@ -618,61 +619,63 @@ namespace SlimmeMeterPortaal.ViewModels
                 }
                 if (listtype == "Usage")
                 {
-                    this.UurVerbruik.Add(dagVerbruik);
+                    this.DagVerbruiken.Add(dagVerbruik);
                 }
                 else
                 {
-                    this.UurReference.Add(dagVerbruik);
+                    this.ReferenceDagVerbruiken.Add(dagVerbruik);
                 }
             }
 
             return;
         }
 
-        public void GetStats()
+        public void BerekenDagRapportStatistieken()
         {
             
             for (int i = 0; i < 24; i++)
             {
-                UurStats t = new UurStats();
-                this.Statistieken.UurStatsList.Add(t);
+                UurVerbruiksWaarden t = new UurVerbruiksWaarden();
+                this.DagRapportStatistieken.UurVerbruiksWaardenLijst.Add(t);
             }
 
             // First fill waarnemingenlijst
-            foreach (DagVerbruik dagverbruik in this.UurReference)
+            foreach (DagVerbruik dagverbruik in this.ReferenceDagVerbruiken)
             {
                 for (int i = 0; i < 24; i++)
                 {
-                    if (dagverbruik.UurLijst[i].UurNummer != i)
+                    if (dagverbruik.UurVerbruiken[i].UurNummer != i)
                     {
-                        throw new Exception("Uurnummer matcht niet in GETSTATS");
+                        string u = i.ToString("D2");
+                        string d = dagverbruik.VerbruiksDatum.ToString("dd-MM-yyyy");
+                        throw new Exception("Uurnummer " + u + "niet gevonden bij datum " + d);
                     }
 
-                    this.Statistieken.UurStatsList[i].UurLabel = dagverbruik.UurLijst[i].UurLabel;
-                    int N = dagverbruik.UurLijst[i].AantalMetingen;
+                    this.DagRapportStatistieken.UurVerbruiksWaardenLijst[i].UurLabel = dagverbruik.UurVerbruiken[i].UurLabel;
+                    int N = dagverbruik.UurVerbruiken[i].AantalMetingen;
                     if (N != 0)
                     {
-                        this.Statistieken.UurStatsList[i].AantalWaarnemingen++;
+                        this.DagRapportStatistieken.UurVerbruiksWaardenLijst[i].AantalWaarnemingen++;
                     }
-                    this.Statistieken.UurStatsList[i].Uurwaarden.Add(dagverbruik.UurLijst[i].UurVerbruik);
+                    this.DagRapportStatistieken.UurVerbruiksWaardenLijst[i].Uurwaarden.Add(dagverbruik.UurVerbruiken[i].Waarde);
                 }
 
-                this.Statistieken.DagStats.Dagwaarden.Add(dagverbruik.TotaalperDag);
-                this.Statistieken.DagStats.Datums.Add(dagverbruik.VerbruiksDatum);
+                this.DagRapportStatistieken.DagVerbruiksWaarden.Dagwaarden.Add(dagverbruik.TotaalperDag);
+                this.DagRapportStatistieken.DagVerbruiksWaarden.Datums.Add(dagverbruik.VerbruiksDatum);
 
             }
 
             // Bereken percentielen per uur en per dag
             for (int i = 0; i < 24; i++)
             {
-                this.Statistieken.UurStatsList[i].StatNumbers = GetNumbers(this.Statistieken.UurStatsList[i].Uurwaarden);
+                this.DagRapportStatistieken.UurVerbruiksWaardenLijst[i].StatistiekWaarden = GetNumbers(this.DagRapportStatistieken.UurVerbruiksWaardenLijst[i].Uurwaarden);
             }
-            this.Statistieken.DagStats.StatNumbers = GetNumbers(this.Statistieken.DagStats.Dagwaarden);
+            this.DagRapportStatistieken.DagVerbruiksWaarden.StatistiekWaarden = GetNumbers(this.DagRapportStatistieken.DagVerbruiksWaarden.Dagwaarden);
 
             return;
         }
 
-        public StatNumbers GetNumbers(List<decimal> getallenlijst)
+        public StatistiekWaarden GetNumbers(List<decimal> getallenlijst)
         {
             List<decimal> sortedlist = getallenlijst.OrderBy(number => number).ToList();
             decimal minimum = 99999;
@@ -731,7 +734,7 @@ namespace SlimmeMeterPortaal.ViewModels
 
             decimal perc100 = sortedlist[aantal - 1];
 
-            StatNumbers statnumbers = new StatNumbers
+            StatistiekWaarden StatistiekWaarden = new StatistiekWaarden
             {
                 Min = minimum,
                 Max = maximum,
@@ -744,7 +747,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 Perc100 = perc100
             };
 
-            return statnumbers;
+            return StatistiekWaarden;
         }
 
         public void Create_DagRapport()
@@ -758,13 +761,13 @@ namespace SlimmeMeterPortaal.ViewModels
                 Max = "Max",
                 Label = "Uur",
                 Eenheid = "Eenheid",
-                Dag1 = this.UurVerbruik[0].VerbruiksDatum.ToString("yyyy-MM-dd"),
-                Dag2 = this.UurVerbruik[1].VerbruiksDatum.ToString("yyyy-MM-dd"),
-                Dag3 = this.UurVerbruik[2].VerbruiksDatum.ToString("yyyy-MM-dd"),
-                Dag4 = this.UurVerbruik[3].VerbruiksDatum.ToString("yyyy-MM-dd"),
-                Dag5 = this.UurVerbruik[4].VerbruiksDatum.ToString("yyyy-MM-dd"),
-                Dag6 = this.UurVerbruik[5].VerbruiksDatum.ToString("yyyy-MM-dd"),
-                Dag7 = this.UurVerbruik[6].VerbruiksDatum.ToString("yyyy-MM-dd")
+                Dag1 = this.DagVerbruiken[0].VerbruiksDatum.ToString("yyyy-MM-dd"),
+                Dag2 = this.DagVerbruiken[1].VerbruiksDatum.ToString("yyyy-MM-dd"),
+                Dag3 = this.DagVerbruiken[2].VerbruiksDatum.ToString("yyyy-MM-dd"),
+                Dag4 = this.DagVerbruiken[3].VerbruiksDatum.ToString("yyyy-MM-dd"),
+                Dag5 = this.DagVerbruiken[4].VerbruiksDatum.ToString("yyyy-MM-dd"),
+                Dag6 = this.DagVerbruiken[5].VerbruiksDatum.ToString("yyyy-MM-dd"),
+                Dag7 = this.DagVerbruiken[6].VerbruiksDatum.ToString("yyyy-MM-dd")
             };
             this.DagRapport.Add(line);
 
@@ -776,13 +779,13 @@ namespace SlimmeMeterPortaal.ViewModels
                 Max = "",
                 Label = "",
                 Eenheid = "",
-                Dag1 = this.UurVerbruik[0].UTC,
-                Dag2 = this.UurVerbruik[1].UTC,
-                Dag3 = this.UurVerbruik[2].UTC,
-                Dag4 = this.UurVerbruik[3].UTC,
-                Dag5 = this.UurVerbruik[4].UTC,
-                Dag6 = this.UurVerbruik[5].UTC,
-                Dag7 = this.UurVerbruik[6].UTC
+                Dag1 = this.DagVerbruiken[0].UTC,
+                Dag2 = this.DagVerbruiken[1].UTC,
+                Dag3 = this.DagVerbruiken[2].UTC,
+                Dag4 = this.DagVerbruiken[3].UTC,
+                Dag5 = this.DagVerbruiken[4].UTC,
+                Dag6 = this.DagVerbruiken[5].UTC,
+                Dag7 = this.DagVerbruiken[6].UTC
             };
             this.DagRapport.Add(lineu);
 
@@ -790,54 +793,54 @@ namespace SlimmeMeterPortaal.ViewModels
             {
                 RPT_line lined = new RPT_line
                 {
-                    N = Statistieken.UurStatsList[i].AantalWaarnemingen.ToString("D2"),
-                    Min = Statistieken.UurStatsList[i].StatNumbers.Min.ToString("N2"),
-                    Mean = Statistieken.UurStatsList[i].StatNumbers.Mean.ToString("N2"),
-                    Max = Statistieken.UurStatsList[i].StatNumbers.Max.ToString("N2"),
-                    Label = Statistieken.UurStatsList[i].UurLabel,
+                    N = this.DagRapportStatistieken.UurVerbruiksWaardenLijst[i].AantalWaarnemingen.ToString("D2"),
+                    Min = this.DagRapportStatistieken.UurVerbruiksWaardenLijst[i].StatistiekWaarden.Min.ToString("N2"),
+                    Mean = this.DagRapportStatistieken.UurVerbruiksWaardenLijst[i].StatistiekWaarden.Mean.ToString("N2"),
+                    Max = this.DagRapportStatistieken.UurVerbruiksWaardenLijst[i].StatistiekWaarden.Max.ToString("N2"),
+                    Label = this.DagRapportStatistieken.UurVerbruiksWaardenLijst[i].UurLabel,
                     Eenheid = this.Eenheid,
-                    Dag1 = this.UurVerbruik[0].UurLijst[i].AantalMetingen == 0 ? "n/a" : this.UurVerbruik[0].UurLijst[i].UurVerbruik.ToString("N2"),
-                    Dag2 = this.UurVerbruik[1].UurLijst[i].AantalMetingen == 0 ? "n/a" : this.UurVerbruik[1].UurLijst[i].UurVerbruik.ToString("N2"),
-                    Dag3 = this.UurVerbruik[2].UurLijst[i].AantalMetingen == 0 ? "n/a" : this.UurVerbruik[2].UurLijst[i].UurVerbruik.ToString("N2"),
-                    Dag4 = this.UurVerbruik[3].UurLijst[i].AantalMetingen == 0 ? "n/a" : this.UurVerbruik[3].UurLijst[i].UurVerbruik.ToString("N2"),
-                    Dag5 = this.UurVerbruik[4].UurLijst[i].AantalMetingen == 0 ? "n/a" : this.UurVerbruik[4].UurLijst[i].UurVerbruik.ToString("N2"),
-                    Dag6 = this.UurVerbruik[5].UurLijst[i].AantalMetingen == 0 ? "n/a" : this.UurVerbruik[5].UurLijst[i].UurVerbruik.ToString("N2"),
-                    Dag7 = this.UurVerbruik[6].UurLijst[i].AantalMetingen == 0 ? "n/a" : this.UurVerbruik[6].UurLijst[i].UurVerbruik.ToString("N2"),
-                    Level1 = this.UurVerbruik[0].UurLijst[i].AantalMetingen == 0 ? 9 :
-                            Statistieken.GetLevel(this.UurVerbruik[0].UurLijst[i].UurVerbruik, Statistieken.UurStatsList[i].StatNumbers),
-                    Level2 = this.UurVerbruik[0].UurLijst[i].AantalMetingen == 0 ? 9 :
-                            Statistieken.GetLevel(this.UurVerbruik[1].UurLijst[i].UurVerbruik, Statistieken.UurStatsList[i].StatNumbers),
-                    Level3 = this.UurVerbruik[2].UurLijst[i].AantalMetingen == 0 ? 9 : Statistieken.GetLevel(this.UurVerbruik[2].UurLijst[i].UurVerbruik, Statistieken.UurStatsList[i].StatNumbers),
-                    Level4 = this.UurVerbruik[3].UurLijst[i].AantalMetingen == 0 ? 9 : Statistieken.GetLevel(this.UurVerbruik[3].UurLijst[i].UurVerbruik, Statistieken.UurStatsList[i].StatNumbers),
-                    Level5 = this.UurVerbruik[4].UurLijst[i].AantalMetingen == 0 ? 9 : Statistieken.GetLevel(this.UurVerbruik[4].UurLijst[i].UurVerbruik, Statistieken.UurStatsList[i].StatNumbers),
-                    Level6 = this.UurVerbruik[5].UurLijst[i].AantalMetingen == 0 ? 9 : Statistieken.GetLevel(this.UurVerbruik[5].UurLijst[i].UurVerbruik, Statistieken.UurStatsList[i].StatNumbers),
-                    Level7 = this.UurVerbruik[6].UurLijst[i].AantalMetingen == 0 ? 9 : Statistieken.GetLevel(this.UurVerbruik[6].UurLijst[i].UurVerbruik, Statistieken.UurStatsList[i].StatNumbers)
+                    Dag1 = this.DagVerbruiken[0].UurVerbruiken[i].AantalMetingen == 0 ? "n/a" : this.DagVerbruiken[0].UurVerbruiken[i].Waarde.ToString("N2"),
+                    Dag2 = this.DagVerbruiken[1].UurVerbruiken[i].AantalMetingen == 0 ? "n/a" : this.DagVerbruiken[1].UurVerbruiken[i].Waarde.ToString("N2"),
+                    Dag3 = this.DagVerbruiken[2].UurVerbruiken[i].AantalMetingen == 0 ? "n/a" : this.DagVerbruiken[2].UurVerbruiken[i].Waarde.ToString("N2"),
+                    Dag4 = this.DagVerbruiken[3].UurVerbruiken[i].AantalMetingen == 0 ? "n/a" : this.DagVerbruiken[3].UurVerbruiken[i].Waarde.ToString("N2"),
+                    Dag5 = this.DagVerbruiken[4].UurVerbruiken[i].AantalMetingen == 0 ? "n/a" : this.DagVerbruiken[4].UurVerbruiken[i].Waarde.ToString("N2"),
+                    Dag6 = this.DagVerbruiken[5].UurVerbruiken[i].AantalMetingen == 0 ? "n/a" : this.DagVerbruiken[5].UurVerbruiken[i].Waarde.ToString("N2"),
+                    Dag7 = this.DagVerbruiken[6].UurVerbruiken[i].AantalMetingen == 0 ? "n/a" : this.DagVerbruiken[6].UurVerbruiken[i].Waarde.ToString("N2"),
+                    Level1 = this.DagVerbruiken[0].UurVerbruiken[i].AantalMetingen == 0 ? 9 :
+                            this.DagRapportStatistieken.GetLevel(this.DagVerbruiken[0].UurVerbruiken[i].Waarde, this.DagRapportStatistieken.UurVerbruiksWaardenLijst[i].StatistiekWaarden),
+                    Level2 = this.DagVerbruiken[0].UurVerbruiken[i].AantalMetingen == 0 ? 9 :
+                            this.DagRapportStatistieken.GetLevel(this.DagVerbruiken[1].UurVerbruiken[i].Waarde, this.DagRapportStatistieken.UurVerbruiksWaardenLijst[i].StatistiekWaarden),
+                    Level3 = this.DagVerbruiken[2].UurVerbruiken[i].AantalMetingen == 0 ? 9 : this.DagRapportStatistieken.GetLevel(this.DagVerbruiken[2].UurVerbruiken[i].Waarde, this.DagRapportStatistieken.UurVerbruiksWaardenLijst[i].StatistiekWaarden),
+                    Level4 = this.DagVerbruiken[3].UurVerbruiken[i].AantalMetingen == 0 ? 9 : this.DagRapportStatistieken.GetLevel(this.DagVerbruiken[3].UurVerbruiken[i].Waarde, this.DagRapportStatistieken.UurVerbruiksWaardenLijst[i].StatistiekWaarden),
+                    Level5 = this.DagVerbruiken[4].UurVerbruiken[i].AantalMetingen == 0 ? 9 : this.DagRapportStatistieken.GetLevel(this.DagVerbruiken[4].UurVerbruiken[i].Waarde, this.DagRapportStatistieken.UurVerbruiksWaardenLijst[i].StatistiekWaarden),
+                    Level6 = this.DagVerbruiken[5].UurVerbruiken[i].AantalMetingen == 0 ? 9 : this.DagRapportStatistieken.GetLevel(this.DagVerbruiken[5].UurVerbruiken[i].Waarde, this.DagRapportStatistieken.UurVerbruiksWaardenLijst[i].StatistiekWaarden),
+                    Level7 = this.DagVerbruiken[6].UurVerbruiken[i].AantalMetingen == 0 ? 9 : this.DagRapportStatistieken.GetLevel(this.DagVerbruiken[6].UurVerbruiken[i].Waarde, this.DagRapportStatistieken.UurVerbruiksWaardenLijst[i].StatistiekWaarden)
                 };
                 this.DagRapport.Add(lined);
 
             }
             RPT_line linex = new RPT_line
             {
-                N = Statistieken.DagStats.AantalWaarnemingen.ToString("D2"),
-                Min = Statistieken.DagStats.StatNumbers.Min.ToString("N2"),
-                Mean = Statistieken.DagStats.StatNumbers.Mean.ToString("N2"),
-                Max = Statistieken.DagStats.StatNumbers.Max.ToString("N2"),
+                N = this.DagRapportStatistieken.DagVerbruiksWaarden.AantalWaarnemingen.ToString("D2"),
+                Min = this.DagRapportStatistieken.DagVerbruiksWaarden.StatistiekWaarden.Min.ToString("N2"),
+                Mean = this.DagRapportStatistieken.DagVerbruiksWaarden.StatistiekWaarden.Mean.ToString("N2"),
+                Max = this.DagRapportStatistieken.DagVerbruiksWaarden.StatistiekWaarden.Max.ToString("N2"),
                 Label = "Dag Totaal (SumUp)",
                 Eenheid = this.Eenheid,
-                Dag1 = this.UurVerbruik[0].TotaalperDag.ToString("N2"),
-                Dag2 = this.UurVerbruik[1].TotaalperDag.ToString("N2"),
-                Dag3 = this.UurVerbruik[2].TotaalperDag.ToString("N2"),
-                Dag4 = this.UurVerbruik[3].TotaalperDag.ToString("N2"),
-                Dag5 = this.UurVerbruik[4].TotaalperDag.ToString("N2"),
-                Dag6 = this.UurVerbruik[5].TotaalperDag.ToString("N2"),
-                Dag7 = this.UurVerbruik[6].TotaalperDag.ToString("N2"),
-                Level1 = Statistieken.GetLevel(this.UurVerbruik[0].TotaalperDag, Statistieken.DagStats.StatNumbers),
-                Level2 = Statistieken.GetLevel(this.UurVerbruik[1].TotaalperDag, Statistieken.DagStats.StatNumbers),
-                Level3 = Statistieken.GetLevel(this.UurVerbruik[2].TotaalperDag, Statistieken.DagStats.StatNumbers),
-                Level4 = Statistieken.GetLevel(this.UurVerbruik[3].TotaalperDag, Statistieken.DagStats.StatNumbers),
-                Level5 = Statistieken.GetLevel(this.UurVerbruik[4].TotaalperDag, Statistieken.DagStats.StatNumbers),
-                Level6 = Statistieken.GetLevel(this.UurVerbruik[5].TotaalperDag, Statistieken.DagStats.StatNumbers),
-                Level7 = Statistieken.GetLevel(this.UurVerbruik[6].TotaalperDag, Statistieken.DagStats.StatNumbers)                
+                Dag1 = this.DagVerbruiken[0].TotaalperDag.ToString("N2"),
+                Dag2 = this.DagVerbruiken[1].TotaalperDag.ToString("N2"),
+                Dag3 = this.DagVerbruiken[2].TotaalperDag.ToString("N2"),
+                Dag4 = this.DagVerbruiken[3].TotaalperDag.ToString("N2"),
+                Dag5 = this.DagVerbruiken[4].TotaalperDag.ToString("N2"),
+                Dag6 = this.DagVerbruiken[5].TotaalperDag.ToString("N2"),
+                Dag7 = this.DagVerbruiken[6].TotaalperDag.ToString("N2"),
+                Level1 = this.DagRapportStatistieken.GetLevel(this.DagVerbruiken[0].TotaalperDag, this.DagRapportStatistieken.DagVerbruiksWaarden.StatistiekWaarden),
+                Level2 = this.DagRapportStatistieken.GetLevel(this.DagVerbruiken[1].TotaalperDag, this.DagRapportStatistieken.DagVerbruiksWaarden.StatistiekWaarden),
+                Level3 = this.DagRapportStatistieken.GetLevel(this.DagVerbruiken[2].TotaalperDag, this.DagRapportStatistieken.DagVerbruiksWaarden.StatistiekWaarden),
+                Level4 = this.DagRapportStatistieken.GetLevel(this.DagVerbruiken[3].TotaalperDag, this.DagRapportStatistieken.DagVerbruiksWaarden.StatistiekWaarden),
+                Level5 = this.DagRapportStatistieken.GetLevel(this.DagVerbruiken[4].TotaalperDag, this.DagRapportStatistieken.DagVerbruiksWaarden.StatistiekWaarden),
+                Level6 = this.DagRapportStatistieken.GetLevel(this.DagVerbruiken[5].TotaalperDag, this.DagRapportStatistieken.DagVerbruiksWaarden.StatistiekWaarden),
+                Level7 = this.DagRapportStatistieken.GetLevel(this.DagVerbruiken[6].TotaalperDag, this.DagRapportStatistieken.DagVerbruiksWaarden.StatistiekWaarden)                
             };
             this.DagRapport.Add(linex);
 
@@ -850,13 +853,13 @@ namespace SlimmeMeterPortaal.ViewModels
                 Max = "",
                 Label = "Dag Totaal (Diff)",
                 Eenheid = this.Eenheid,
-                Dag1 = this.UurVerbruik[0].DiffperDag.ToString("N2"),
-                Dag2 = this.UurVerbruik[1].DiffperDag.ToString("N2"),
-                Dag3 = this.UurVerbruik[2].DiffperDag.ToString("N2"),
-                Dag4 = this.UurVerbruik[3].DiffperDag.ToString("N2"),
-                Dag5 = this.UurVerbruik[4].DiffperDag.ToString("N2"),
-                Dag6 = this.UurVerbruik[5].DiffperDag.ToString("N2"),
-                Dag7 = this.UurVerbruik[6].DiffperDag.ToString("N2"),
+                Dag1 = this.DagVerbruiken[0].DiffperDag.ToString("N2"),
+                Dag2 = this.DagVerbruiken[1].DiffperDag.ToString("N2"),
+                Dag3 = this.DagVerbruiken[2].DiffperDag.ToString("N2"),
+                Dag4 = this.DagVerbruiken[3].DiffperDag.ToString("N2"),
+                Dag5 = this.DagVerbruiken[4].DiffperDag.ToString("N2"),
+                Dag6 = this.DagVerbruiken[5].DiffperDag.ToString("N2"),
+                Dag7 = this.DagVerbruiken[6].DiffperDag.ToString("N2"),
                 Level1 = 9,
                 Level2 = 9,
                 Level3 = 9,
@@ -878,7 +881,7 @@ namespace SlimmeMeterPortaal.ViewModels
             {
                 datestring = "01-" + mo.ToString("D2") + "-" + year.ToString("D4");
 
-                Task<string> longRunningTask = this.GetSMPday(datestring, apikey, "Month");
+                Task<string> longRunningTask = this.HaalEenDagRuwVerbruik(datestring, apikey, "Month");
                 string result = await longRunningTask;
 
                 DateTime ldate = this.RapportageDatum;
@@ -898,7 +901,7 @@ namespace SlimmeMeterPortaal.ViewModels
                     }
                     datestring = ldate.ToString("dd-MM-yyyy");
                     this.LastMonthDate = datestring;
-                    Task<string> longRunningTask2 = this.GetSMPday(datestring, apikey, "Month");
+                    Task<string> longRunningTask2 = this.HaalEenDagRuwVerbruik(datestring, apikey, "Month");
                     string result2 = await longRunningTask2;
 
                     // this was the last date to proces
@@ -918,18 +921,18 @@ namespace SlimmeMeterPortaal.ViewModels
             decimal endreading;
             decimal meterstandtotaal = 0;
                         
-            int startyear = this.MaandGasMetingen[0].VerbruiksDatum.Year;
+            int startyear = this.MaandGasDagMetingLijst[0].VerbruiksDatum.Year;
             int endyear = this.RapportageDatum.Year;            
 
             for (int y = startyear; y <= endyear; y++)
             {
-                MaandVerbruik maandverbruik = new MaandVerbruik();
+                MaandVerbruikLijst maandverbruik = new MaandVerbruikLijst();
                 bool newyear = true;
-                foreach (GasMetingen GasMetingen in this.MaandGasMetingen)
+                foreach (RawGasDagMeting GasDagMeting in this.MaandGasDagMetingLijst)
                 {
-                    if (GasMetingen.VerbruiksDatum.Year < y) { continue; }
+                    if (GasDagMeting.VerbruiksDatum.Year < y) { continue; }
 
-                    maandnr = GasMetingen.VerbruiksDatum.Month;
+                    maandnr = GasDagMeting.VerbruiksDatum.Month;
 
                     if (newyear)
                     {
@@ -940,12 +943,12 @@ namespace SlimmeMeterPortaal.ViewModels
                         else
                         {                            
                             // eerste maand van het jaar
-                            maandverbruik.DeviceID = GasMetingen.DeviceID;
-                            maandverbruik.Jaar = GasMetingen.VerbruiksDatum.Year;
+                            maandverbruik.MeterIdentificatie = GasDagMeting.MeterIdentificatie;
+                            maandverbruik.Jaar = GasDagMeting.VerbruiksDatum.Year;
                             maandverbruik.VerbruiksType = "gas";
 
-                            string strt = GasMetingen.MetingLijst.usages[0].delivery_reading; // meterstand
-                            string deliv = GasMetingen.MetingLijst.usages[0].delivery;
+                            string strt = GasDagMeting.GasTimeSlotMetingLijst.usages[0].delivery_reading; // meterstand
+                            string deliv = GasDagMeting.GasTimeSlotMetingLijst.usages[0].delivery;
 
                             int istart = Int32.Parse(strt.Replace(",", "").Replace(".", ""));
                             decimal dstart = istart;
@@ -957,7 +960,7 @@ namespace SlimmeMeterPortaal.ViewModels
                             // de delivery eraf trekken geeft de stand om 00:00 uur
                             startreading = (dstart - ddeliv) / 100; // start stand van het jaar 
 
-                            currentyear = GasMetingen.VerbruiksDatum.Year;
+                            currentyear = GasDagMeting.VerbruiksDatum.Year;
 
                             newyear = false;
 
@@ -969,13 +972,13 @@ namespace SlimmeMeterPortaal.ViewModels
                     }
                     else
                     {
-                        if (GasMetingen.MetingLijst.usages.Count == 0) 
+                        if (GasDagMeting.GasTimeSlotMetingLijst.usages.Count == 0) 
                         {
                             throw new Exception("Lege meting: jaar = " + currentyear.ToString() + " maand = " + maandnr.ToString());
                         }
 
-                        string strt = GasMetingen.MetingLijst.usages[0].delivery_reading;
-                        string deliv = GasMetingen.MetingLijst.usages[0].delivery;
+                        string strt = GasDagMeting.GasTimeSlotMetingLijst.usages[0].delivery_reading;
+                        string deliv = GasDagMeting.GasTimeSlotMetingLijst.usages[0].delivery;
 
                         int istart = Int32.Parse(strt.Replace(",", "").Replace(".", ""));
                         decimal dstart = istart;
@@ -987,34 +990,34 @@ namespace SlimmeMeterPortaal.ViewModels
 
                         decimal monthusage = endreading - startreading;
                         
-                        if (GasMetingen.VerbruiksDatum.Day == 1)
+                        if (GasDagMeting.VerbruiksDatum.Day == 1)
                         {
-                            maandnr = GasMetingen.VerbruiksDatum.Month - 1;
+                            maandnr = GasDagMeting.VerbruiksDatum.Month - 1;
                             if (maandnr == 0) { maandnr = 12; }
 
                         }
                         else
                         {
-                            maandnr = GasMetingen.VerbruiksDatum.Month;
+                            maandnr = GasDagMeting.VerbruiksDatum.Month;
                             
                         }     
                         maandlabel = this.MaandArray[maandnr - 1];
-                        MaandCijfer maandCijfer = new MaandCijfer
+                        MaandVerbruik MaandVerbruik = new MaandVerbruik
                         {
                             MaandLabel = maandlabel,
                             MaandNummer = maandnr,
-                            Cijfer = monthusage,
+                            Waarde = monthusage,
                             MeterstandTotaal = meterstandtotaal,
                             MeterstandLaagTarief = 0,
                             MeterstandNormaalTarief = meterstandtotaal
                         };
-                        maandverbruik.MaandCijfers.Add(maandCijfer);
+                        maandverbruik.MaandVerbruiken.Add(MaandVerbruik);
 
                         startreading = endreading;
 
                         meterstandtotaal = startreading;
 
-                        if (currentyear != GasMetingen.VerbruiksDatum.Year)
+                        if (currentyear != GasDagMeting.VerbruiksDatum.Year)
                         {
                             this.MaandVerbruiken.Add(maandverbruik);
                             break;
@@ -1026,8 +1029,8 @@ namespace SlimmeMeterPortaal.ViewModels
                 if (currentyear == endyear)
                 {
                     // Add last (incomplete) year
-                    int q = maandverbruik.MaandCijfers.Count;
-                    int maxdays = DateTime.DaysInMonth(currentyear, maandverbruik.MaandCijfers[q - 1].MaandNummer);
+                    int q = maandverbruik.MaandVerbruiken.Count;
+                    int maxdays = DateTime.DaysInMonth(currentyear, maandverbruik.MaandVerbruiken[q - 1].MaandNummer);
                     DateTime lastmonth = DateTime.ParseExact(this.LastMonthDate, "dd-MM-yyyy", null);
                     int nrofdays = lastmonth.Day - 1;
 
@@ -1040,18 +1043,18 @@ namespace SlimmeMeterPortaal.ViewModels
                         this.LastMonthDate = lastmonth.ToString("dd-MM-yyyy");
                     }
                     
-                    this.LastMonthForecast = maandverbruik.MaandCijfers[q - 1].Cijfer * maxdays / nrofdays;
+                    this.LastMonthForecast = maandverbruik.MaandVerbruiken[q - 1].Waarde * maxdays / nrofdays;
                     
                     // Add dummy entries for months that lay in the future
                     for (int j = q; j <= 12; j++)
                     {
-                        MaandCijfer dummy = new MaandCijfer
+                        MaandVerbruik dummy = new MaandVerbruik
                         {
                             MaandLabel = this.MaandArray[j - 1],
                             MaandNummer = j,
-                            Cijfer = 0
+                            Waarde = 0
                         };
-                        maandverbruik.MaandCijfers.Add(dummy);
+                        maandverbruik.MaandVerbruiken.Add(dummy);
                     }
                     this.MaandVerbruiken.Add(maandverbruik);
                 }
@@ -1071,9 +1074,9 @@ namespace SlimmeMeterPortaal.ViewModels
 
             for (int y = startyear; y <= endyear; y++)
             {
-                MaandVerbruik maandverbruik = new MaandVerbruik();
+                MaandVerbruikLijst maandverbruik = new MaandVerbruikLijst();
                 bool newyear = true;
-                foreach (StroomMetingen StroomMetingen in this.MaandStroomMetingen)
+                foreach (RawStroomDagMeting StroomMetingen in this.MaandStroomMetingen)
                 {
                     if (StroomMetingen.VerbruiksDatum.Year < y) { continue; }
 
@@ -1088,14 +1091,14 @@ namespace SlimmeMeterPortaal.ViewModels
                         else
                         {
                             // eerste maand van het jaar
-                            maandverbruik.DeviceID = StroomMetingen.DeviceID;
+                            maandverbruik.MeterIdentificatie = StroomMetingen.MeterIdentificatie;
                             maandverbruik.Jaar = StroomMetingen.VerbruiksDatum.Year;
                             maandverbruik.VerbruiksType = "elektriciteit";
 
-                            string strt = StroomMetingen.MetingLijst.usages[0].delivery_reading_combined; // meterstand
-                            string deliv = StroomMetingen.MetingLijst.usages[0].delivery_high;
+                            string strt = StroomMetingen.StroomTimeSlotMetingLijst.usages[0].delivery_reading_combined; // meterstand
+                            string deliv = StroomMetingen.StroomTimeSlotMetingLijst.usages[0].delivery_high;
                             if (string.IsNullOrEmpty(deliv)) {
-                                deliv = StroomMetingen.MetingLijst.usages[0].delivery_low;
+                                deliv = StroomMetingen.StroomTimeSlotMetingLijst.usages[0].delivery_low;
                             }
 
                             int istart = Int32.Parse(strt.Replace(",", "").Replace(".", ""));
@@ -1121,15 +1124,15 @@ namespace SlimmeMeterPortaal.ViewModels
                     }
                     else
                     {
-                        if (StroomMetingen.MetingLijst.usages.Count == 0)
+                        if (StroomMetingen.StroomTimeSlotMetingLijst.usages.Count == 0)
                         {
                             throw new Exception("Lege meting: jaar = " + currentyear.ToString() + " maand = " + maandnr.ToString());
                         }
                         
-                        string strt = StroomMetingen.MetingLijst.usages[0].delivery_reading_combined;
-                        string deliv = StroomMetingen.MetingLijst.usages[0].delivery_high;
+                        string strt = StroomMetingen.StroomTimeSlotMetingLijst.usages[0].delivery_reading_combined;
+                        string deliv = StroomMetingen.StroomTimeSlotMetingLijst.usages[0].delivery_high;
                         if (string.IsNullOrEmpty(deliv)) {
-                            deliv = StroomMetingen.MetingLijst.usages[0].delivery_low;
+                            deliv = StroomMetingen.StroomTimeSlotMetingLijst.usages[0].delivery_low;
                         }
 
                         int istart = Int32.Parse(strt.Replace(",", "").Replace(".", ""));
@@ -1149,17 +1152,17 @@ namespace SlimmeMeterPortaal.ViewModels
                        
                         if (maandnr == 0) { maandnr = 12; }
                         maandlabel = this.MaandArray[maandnr - 1];
-                        MaandCijfer maandCijfer = new MaandCijfer
+                        MaandVerbruik MaandVerbruik = new MaandVerbruik
                         {
                             MaandLabel = maandlabel,
                             MaandNummer = maandnr,
-                            Cijfer = monthusage,
+                            Waarde = monthusage,
                             MeterstandTotaal = meterstandtotaal,
                             MeterstandNormaalTarief = meterstandtotaal,
                             MeterstandLaagTarief = 0
                         };
 
-                        maandverbruik.MaandCijfers.Add(maandCijfer);
+                        maandverbruik.MaandVerbruiken.Add(MaandVerbruik);
                         startreading = endreading;
 
                         // Get meterstanden
@@ -1176,8 +1179,8 @@ namespace SlimmeMeterPortaal.ViewModels
                 if (currentyear == endyear)
                 {
                     // Add last (incomplete) year
-                    int q = maandverbruik.MaandCijfers.Count;
-                    int maxdays = DateTime.DaysInMonth(currentyear, maandverbruik.MaandCijfers[q - 1].MaandNummer);
+                    int q = maandverbruik.MaandVerbruiken.Count;
+                    int maxdays = DateTime.DaysInMonth(currentyear, maandverbruik.MaandVerbruiken[q - 1].MaandNummer);
                     DateTime lastmonth = DateTime.ParseExact(this.LastMonthDate, "dd-MM-yyyy", null);
                     int nrofdays = lastmonth.Day - 1;
 
@@ -1190,18 +1193,18 @@ namespace SlimmeMeterPortaal.ViewModels
                         this.LastMonthDate = lastmonth.ToString("dd-MM-yyyy");
                     }
 
-                    this.LastMonthForecast = maandverbruik.MaandCijfers[q - 1].Cijfer * maxdays / nrofdays;
+                    this.LastMonthForecast = maandverbruik.MaandVerbruiken[q - 1].Waarde * maxdays / nrofdays;
 
                     // Add dummy entries for months that lay in the future
                     for (int j = q; j <= 12; j++)
                     {
-                        MaandCijfer dummy = new MaandCijfer
+                        MaandVerbruik dummy = new MaandVerbruik
                         {
                             MaandLabel = this.MaandArray[j - 1],
                             MaandNummer = j,
-                            Cijfer = 0
+                            Waarde = 0
                         };
-                        maandverbruik.MaandCijfers.Add(dummy);
+                        maandverbruik.MaandVerbruiken.Add(dummy);
                     }
                     this.MaandVerbruiken.Add(maandverbruik);
                 }
@@ -1225,9 +1228,9 @@ namespace SlimmeMeterPortaal.ViewModels
                 {
                     MaandGegeven.MaandLabel = "jaartotaal"; 
                 }
-                MaandGegeven.MaandStatistiek.Max = int.MinValue;
-                MaandGegeven.MaandStatistiek.Min = int.MaxValue;
-                this.MaandStats.MaandGegevens.Add(MaandGegeven);
+                MaandGegeven.StatistiekWaardenM.Max = int.MinValue;
+                MaandGegeven.StatistiekWaardenM.Min = int.MaxValue;
+                this.MaandRapportStatistieken.MaandGegevens.Add(MaandGegeven);
             }
 
             // get statistics for each month
@@ -1235,29 +1238,29 @@ namespace SlimmeMeterPortaal.ViewModels
             {
                 decimal sumup = 0;
                 
-                foreach (MaandVerbruik maandverbruik in this.MaandVerbruiken)
+                foreach (MaandVerbruikLijst maandverbruik in this.MaandVerbruiken)
                 {
                     if (maandverbruik.Jaar == this.RapportageDatum.Year) 
                     {                        
                         break; 
                     }
-                    if ((maandverbruik.MaandCijfers[i].MaandNummer != i + 1) && (maandverbruik.Jaar != this.RapportageDatum.Year))
+                    if ((maandverbruik.MaandVerbruiken[i].MaandNummer != i + 1) && (maandverbruik.Jaar != this.RapportageDatum.Year))
                     {
                         throw new Exception("Maandnummer matcht niet in MONTHSTATS");
                     }
-                    this.MaandStats.MaandGegevens[i].AantalWaarnemingen++;
-                    decimal c = maandverbruik.MaandCijfers[i].Cijfer;
+                    this.MaandRapportStatistieken.MaandGegevens[i].AantalWaarnemingen++;
+                    decimal c = maandverbruik.MaandVerbruiken[i].Waarde;
                     sumup += c;
-                    if (c > this.MaandStats.MaandGegevens[i].MaandStatistiek.Max)
+                    if (c > this.MaandRapportStatistieken.MaandGegevens[i].StatistiekWaardenM.Max)
                     {
-                        this.MaandStats.MaandGegevens[i].MaandStatistiek.Max = c;
+                        this.MaandRapportStatistieken.MaandGegevens[i].StatistiekWaardenM.Max = c;
                     }
-                    if (c < this.MaandStats.MaandGegevens[i].MaandStatistiek.Min)
+                    if (c < this.MaandRapportStatistieken.MaandGegevens[i].StatistiekWaardenM.Min)
                     {
-                        this.MaandStats.MaandGegevens[i].MaandStatistiek.Min = c;
+                        this.MaandRapportStatistieken.MaandGegevens[i].StatistiekWaardenM.Min = c;
                     }
                 }
-                this.MaandStats.MaandGegevens[i].MaandStatistiek.Mean = sumup / this.MaandStats.MaandGegevens[i].AantalWaarnemingen;                
+                this.MaandRapportStatistieken.MaandGegevens[i].StatistiekWaardenM.Mean = sumup / this.MaandRapportStatistieken.MaandGegevens[i].AantalWaarnemingen;                
             }
 
             
@@ -1267,7 +1270,7 @@ namespace SlimmeMeterPortaal.ViewModels
             decimal Ysum = 0;
             int N = 0;
             
-            foreach (MaandVerbruik m in this.MaandVerbruiken)
+            foreach (MaandVerbruikLijst m in this.MaandVerbruiken)
             {
                 if (m.Jaar == this.RapportageDatum.Year)
                 {
@@ -1286,31 +1289,31 @@ namespace SlimmeMeterPortaal.ViewModels
                     Ymax = m.TotaalperJaar;
                 }
             }
-            this.MaandStats.MaandGegevens[12].MaandStatistiek.Max = Ymax;
-            this.MaandStats.MaandGegevens[12].MaandStatistiek.Min = Ymin;
-            this.MaandStats.MaandGegevens[12].AantalWaarnemingen = N;
-            this.MaandStats.MaandGegevens[12].MaandStatistiek.Mean = Ysum / this.MaandStats.MaandGegevens[12].AantalWaarnemingen;
+            this.MaandRapportStatistieken.MaandGegevens[12].StatistiekWaardenM.Max = Ymax;
+            this.MaandRapportStatistieken.MaandGegevens[12].StatistiekWaardenM.Min = Ymin;
+            this.MaandRapportStatistieken.MaandGegevens[12].AantalWaarnemingen = N;
+            this.MaandRapportStatistieken.MaandGegevens[12].StatistiekWaardenM.Mean = Ysum / this.MaandRapportStatistieken.MaandGegevens[12].AantalWaarnemingen;
 
             // Tot slot: Bepaal forecast voor het lopende jaar
             // 1: bepaal gemiddeld totaal per jaar
             decimal meantotal = 0;
-            foreach (MaandGegeven mg in this.MaandStats.MaandGegevens)
+            foreach (MaandGegeven mg in this.MaandRapportStatistieken.MaandGegevens)
             {
                 if (mg.MaandLabel == "jaartotaal" )
                 {
                     break;
                 }
-                meantotal += mg.MaandStatistiek.Mean;
+                meantotal += mg.StatistiekWaardenM.Mean;
             }
             // 2: bepaal gemiddeld totaal t/m de laatste rapportmaand
             decimal meantonow = 0;                        
-            foreach (MaandGegeven mg in this.MaandStats.MaandGegevens)
+            foreach (MaandGegeven mg in this.MaandRapportStatistieken.MaandGegevens)
             {
                 if (mg.MaandLabel == "jaartotaal")
                 {
                     break;
                 }
-                meantonow += mg.MaandStatistiek.Mean;
+                meantonow += mg.StatistiekWaardenM.Mean;
                 if (mg.Maandnr == this.LastMonthNumber)
                 {
                     break;
@@ -1319,7 +1322,7 @@ namespace SlimmeMeterPortaal.ViewModels
             // 3: bepaal werkelijk totaal t/m de laatste rapportmaand
             decimal realtonow = 0;
             int cnt = this.MaandVerbruiken.Count - 1;           
-            foreach (MaandCijfer mc in this.MaandVerbruiken[cnt].MaandCijfers) {                
+            foreach (MaandVerbruik mc in this.MaandVerbruiken[cnt].MaandVerbruiken) {                
                 if (mc.MaandNummer == this.LastMonthNumber)
                 {
                     realtonow += this.LastMonthForecast;
@@ -1327,7 +1330,7 @@ namespace SlimmeMeterPortaal.ViewModels
                 }
                 else
                 {
-                    realtonow += mc.Cijfer;
+                    realtonow += mc.Waarde;
                 }                
             }
             // 4: verhouding tussen werkelijk gebruik en gemiddeld gebruike bepaalt de forecast
@@ -1365,19 +1368,19 @@ namespace SlimmeMeterPortaal.ViewModels
                 Jaar = "",
                 Attribuut = "N",
                 Eenheid = "",
-                Totaal = this.MaandStats.MaandGegevens[12].AantalWaarnemingen.ToString("D2"),
-                Maand01 = this.MaandStats.MaandGegevens[0].AantalWaarnemingen.ToString("D2"),
-                Maand02 = this.MaandStats.MaandGegevens[1].AantalWaarnemingen.ToString("D2"),
-                Maand03 = this.MaandStats.MaandGegevens[2].AantalWaarnemingen.ToString("D2"),
-                Maand04 = this.MaandStats.MaandGegevens[3].AantalWaarnemingen.ToString("D2"),
-                Maand05 = this.MaandStats.MaandGegevens[4].AantalWaarnemingen.ToString("D2"),
-                Maand06 = this.MaandStats.MaandGegevens[5].AantalWaarnemingen.ToString("D2"),
-                Maand07 = this.MaandStats.MaandGegevens[6].AantalWaarnemingen.ToString("D2"),
-                Maand08 = this.MaandStats.MaandGegevens[7].AantalWaarnemingen.ToString("D2"),
-                Maand09 = this.MaandStats.MaandGegevens[8].AantalWaarnemingen.ToString("D2"),
-                Maand10 = this.MaandStats.MaandGegevens[9].AantalWaarnemingen.ToString("D2"),
-                Maand11 = this.MaandStats.MaandGegevens[10].AantalWaarnemingen.ToString("D2"),
-                Maand12 = this.MaandStats.MaandGegevens[11].AantalWaarnemingen.ToString("D2"),
+                Totaal = this.MaandRapportStatistieken.MaandGegevens[12].AantalWaarnemingen.ToString("D2"),
+                Maand01 = this.MaandRapportStatistieken.MaandGegevens[0].AantalWaarnemingen.ToString("D2"),
+                Maand02 = this.MaandRapportStatistieken.MaandGegevens[1].AantalWaarnemingen.ToString("D2"),
+                Maand03 = this.MaandRapportStatistieken.MaandGegevens[2].AantalWaarnemingen.ToString("D2"),
+                Maand04 = this.MaandRapportStatistieken.MaandGegevens[3].AantalWaarnemingen.ToString("D2"),
+                Maand05 = this.MaandRapportStatistieken.MaandGegevens[4].AantalWaarnemingen.ToString("D2"),
+                Maand06 = this.MaandRapportStatistieken.MaandGegevens[5].AantalWaarnemingen.ToString("D2"),
+                Maand07 = this.MaandRapportStatistieken.MaandGegevens[6].AantalWaarnemingen.ToString("D2"),
+                Maand08 = this.MaandRapportStatistieken.MaandGegevens[7].AantalWaarnemingen.ToString("D2"),
+                Maand09 = this.MaandRapportStatistieken.MaandGegevens[8].AantalWaarnemingen.ToString("D2"),
+                Maand10 = this.MaandRapportStatistieken.MaandGegevens[9].AantalWaarnemingen.ToString("D2"),
+                Maand11 = this.MaandRapportStatistieken.MaandGegevens[10].AantalWaarnemingen.ToString("D2"),
+                Maand12 = this.MaandRapportStatistieken.MaandGegevens[11].AantalWaarnemingen.ToString("D2"),
 
                 Level00 = 9,
                 Level01 = 9,
@@ -1400,19 +1403,19 @@ namespace SlimmeMeterPortaal.ViewModels
                 Jaar = "",
                 Attribuut = "Min",
                 Eenheid = this.Eenheid,
-                Totaal = this.MaandStats.MaandGegevens[12].MaandStatistiek.Min.ToString("N2"),
-                Maand01 = this.MaandStats.MaandGegevens[0].MaandStatistiek.Min.ToString("N2"),
-                Maand02 = this.MaandStats.MaandGegevens[1].MaandStatistiek.Min.ToString("N2"),
-                Maand03 = this.MaandStats.MaandGegevens[2].MaandStatistiek.Min.ToString("N2"),
-                Maand04 = this.MaandStats.MaandGegevens[3].MaandStatistiek.Min.ToString("N2"),
-                Maand05 = this.MaandStats.MaandGegevens[4].MaandStatistiek.Min.ToString("N2"),
-                Maand06 = this.MaandStats.MaandGegevens[5].MaandStatistiek.Min.ToString("N2"),
-                Maand07 = this.MaandStats.MaandGegevens[6].MaandStatistiek.Min.ToString("N2"),
-                Maand08 = this.MaandStats.MaandGegevens[7].MaandStatistiek.Min.ToString("N2"),
-                Maand09 = this.MaandStats.MaandGegevens[8].MaandStatistiek.Min.ToString("N2"),
-                Maand10 = this.MaandStats.MaandGegevens[9].MaandStatistiek.Min.ToString("N2"),
-                Maand11 = this.MaandStats.MaandGegevens[10].MaandStatistiek.Min.ToString("N2"),
-                Maand12 = this.MaandStats.MaandGegevens[11].MaandStatistiek.Min.ToString("N2"),
+                Totaal = this.MaandRapportStatistieken.MaandGegevens[12].StatistiekWaardenM.Min.ToString("N2"),
+                Maand01 = this.MaandRapportStatistieken.MaandGegevens[0].StatistiekWaardenM.Min.ToString("N2"),
+                Maand02 = this.MaandRapportStatistieken.MaandGegevens[1].StatistiekWaardenM.Min.ToString("N2"),
+                Maand03 = this.MaandRapportStatistieken.MaandGegevens[2].StatistiekWaardenM.Min.ToString("N2"),
+                Maand04 = this.MaandRapportStatistieken.MaandGegevens[3].StatistiekWaardenM.Min.ToString("N2"),
+                Maand05 = this.MaandRapportStatistieken.MaandGegevens[4].StatistiekWaardenM.Min.ToString("N2"),
+                Maand06 = this.MaandRapportStatistieken.MaandGegevens[5].StatistiekWaardenM.Min.ToString("N2"),
+                Maand07 = this.MaandRapportStatistieken.MaandGegevens[6].StatistiekWaardenM.Min.ToString("N2"),
+                Maand08 = this.MaandRapportStatistieken.MaandGegevens[7].StatistiekWaardenM.Min.ToString("N2"),
+                Maand09 = this.MaandRapportStatistieken.MaandGegevens[8].StatistiekWaardenM.Min.ToString("N2"),
+                Maand10 = this.MaandRapportStatistieken.MaandGegevens[9].StatistiekWaardenM.Min.ToString("N2"),
+                Maand11 = this.MaandRapportStatistieken.MaandGegevens[10].StatistiekWaardenM.Min.ToString("N2"),
+                Maand12 = this.MaandRapportStatistieken.MaandGegevens[11].StatistiekWaardenM.Min.ToString("N2"),
 
                 Level00 = 9,
                 Level01 = 9,
@@ -1435,19 +1438,19 @@ namespace SlimmeMeterPortaal.ViewModels
                 Jaar = "",
                 Attribuut = "Mean",
                 Eenheid = this.Eenheid,
-                Totaal = this.MaandStats.MaandGegevens[12].MaandStatistiek.Mean.ToString("N2"),
-                Maand01 = this.MaandStats.MaandGegevens[0].MaandStatistiek.Mean.ToString("N2"),
-                Maand02 = this.MaandStats.MaandGegevens[1].MaandStatistiek.Mean.ToString("N2"),
-                Maand03 = this.MaandStats.MaandGegevens[2].MaandStatistiek.Mean.ToString("N2"),
-                Maand04 = this.MaandStats.MaandGegevens[3].MaandStatistiek.Mean.ToString("N2"),
-                Maand05 = this.MaandStats.MaandGegevens[4].MaandStatistiek.Mean.ToString("N2"),
-                Maand06 = this.MaandStats.MaandGegevens[5].MaandStatistiek.Mean.ToString("N2"),
-                Maand07 = this.MaandStats.MaandGegevens[6].MaandStatistiek.Mean.ToString("N2"),
-                Maand08 = this.MaandStats.MaandGegevens[7].MaandStatistiek.Mean.ToString("N2"),
-                Maand09 = this.MaandStats.MaandGegevens[8].MaandStatistiek.Mean.ToString("N2"),
-                Maand10 = this.MaandStats.MaandGegevens[9].MaandStatistiek.Mean.ToString("N2"),
-                Maand11 = this.MaandStats.MaandGegevens[10].MaandStatistiek.Mean.ToString("N2"),
-                Maand12 = this.MaandStats.MaandGegevens[11].MaandStatistiek.Mean.ToString("N2"),
+                Totaal = this.MaandRapportStatistieken.MaandGegevens[12].StatistiekWaardenM.Mean.ToString("N2"),
+                Maand01 = this.MaandRapportStatistieken.MaandGegevens[0].StatistiekWaardenM.Mean.ToString("N2"),
+                Maand02 = this.MaandRapportStatistieken.MaandGegevens[1].StatistiekWaardenM.Mean.ToString("N2"),
+                Maand03 = this.MaandRapportStatistieken.MaandGegevens[2].StatistiekWaardenM.Mean.ToString("N2"),
+                Maand04 = this.MaandRapportStatistieken.MaandGegevens[3].StatistiekWaardenM.Mean.ToString("N2"),
+                Maand05 = this.MaandRapportStatistieken.MaandGegevens[4].StatistiekWaardenM.Mean.ToString("N2"),
+                Maand06 = this.MaandRapportStatistieken.MaandGegevens[5].StatistiekWaardenM.Mean.ToString("N2"),
+                Maand07 = this.MaandRapportStatistieken.MaandGegevens[6].StatistiekWaardenM.Mean.ToString("N2"),
+                Maand08 = this.MaandRapportStatistieken.MaandGegevens[7].StatistiekWaardenM.Mean.ToString("N2"),
+                Maand09 = this.MaandRapportStatistieken.MaandGegevens[8].StatistiekWaardenM.Mean.ToString("N2"),
+                Maand10 = this.MaandRapportStatistieken.MaandGegevens[9].StatistiekWaardenM.Mean.ToString("N2"),
+                Maand11 = this.MaandRapportStatistieken.MaandGegevens[10].StatistiekWaardenM.Mean.ToString("N2"),
+                Maand12 = this.MaandRapportStatistieken.MaandGegevens[11].StatistiekWaardenM.Mean.ToString("N2"),
 
                 Level00 = 9,
                 Level01 = 9,
@@ -1470,19 +1473,19 @@ namespace SlimmeMeterPortaal.ViewModels
                 Jaar = "",
                 Attribuut = "Max",
                 Eenheid = this.Eenheid,
-                Totaal = this.MaandStats.MaandGegevens[12].MaandStatistiek.Max.ToString("N2"),
-                Maand01 = this.MaandStats.MaandGegevens[0].MaandStatistiek.Max.ToString("N2"),
-                Maand02 = this.MaandStats.MaandGegevens[1].MaandStatistiek.Max.ToString("N2"),
-                Maand03 = this.MaandStats.MaandGegevens[2].MaandStatistiek.Max.ToString("N2"),
-                Maand04 = this.MaandStats.MaandGegevens[3].MaandStatistiek.Max.ToString("N2"),
-                Maand05 = this.MaandStats.MaandGegevens[4].MaandStatistiek.Max.ToString("N2"),
-                Maand06 = this.MaandStats.MaandGegevens[5].MaandStatistiek.Max.ToString("N2"),
-                Maand07 = this.MaandStats.MaandGegevens[6].MaandStatistiek.Max.ToString("N2"),
-                Maand08 = this.MaandStats.MaandGegevens[7].MaandStatistiek.Max.ToString("N2"),
-                Maand09 = this.MaandStats.MaandGegevens[8].MaandStatistiek.Max.ToString("N2"),
-                Maand10 = this.MaandStats.MaandGegevens[9].MaandStatistiek.Max.ToString("N2"),
-                Maand11 = this.MaandStats.MaandGegevens[10].MaandStatistiek.Max.ToString("N2"),
-                Maand12 = this.MaandStats.MaandGegevens[11].MaandStatistiek.Max.ToString("N2"),
+                Totaal = this.MaandRapportStatistieken.MaandGegevens[12].StatistiekWaardenM.Max.ToString("N2"),
+                Maand01 = this.MaandRapportStatistieken.MaandGegevens[0].StatistiekWaardenM.Max.ToString("N2"),
+                Maand02 = this.MaandRapportStatistieken.MaandGegevens[1].StatistiekWaardenM.Max.ToString("N2"),
+                Maand03 = this.MaandRapportStatistieken.MaandGegevens[2].StatistiekWaardenM.Max.ToString("N2"),
+                Maand04 = this.MaandRapportStatistieken.MaandGegevens[3].StatistiekWaardenM.Max.ToString("N2"),
+                Maand05 = this.MaandRapportStatistieken.MaandGegevens[4].StatistiekWaardenM.Max.ToString("N2"),
+                Maand06 = this.MaandRapportStatistieken.MaandGegevens[5].StatistiekWaardenM.Max.ToString("N2"),
+                Maand07 = this.MaandRapportStatistieken.MaandGegevens[6].StatistiekWaardenM.Max.ToString("N2"),
+                Maand08 = this.MaandRapportStatistieken.MaandGegevens[7].StatistiekWaardenM.Max.ToString("N2"),
+                Maand09 = this.MaandRapportStatistieken.MaandGegevens[8].StatistiekWaardenM.Max.ToString("N2"),
+                Maand10 = this.MaandRapportStatistieken.MaandGegevens[9].StatistiekWaardenM.Max.ToString("N2"),
+                Maand11 = this.MaandRapportStatistieken.MaandGegevens[10].StatistiekWaardenM.Max.ToString("N2"),
+                Maand12 = this.MaandRapportStatistieken.MaandGegevens[11].StatistiekWaardenM.Max.ToString("N2"),
 
                 Level00 = 9,
                 Level01 = 9,
@@ -1500,7 +1503,7 @@ namespace SlimmeMeterPortaal.ViewModels
             };
             this.MaandRapport.Add(MlineMax);
 
-            foreach (MaandVerbruik m in this.MaandVerbruiken)
+            foreach (MaandVerbruikLijst m in this.MaandVerbruiken)
             {
                 RPT_Mline lined = new RPT_Mline
                 {
@@ -1509,32 +1512,32 @@ namespace SlimmeMeterPortaal.ViewModels
                     Eenheid = this.Eenheid,
                     Totaal = m.TotaalperJaar.ToString("N2"),
                     
-                    Maand01 = (m.MaandCijfers[0].Cijfer == 0) ? "n/a" : m.MaandCijfers[0].Cijfer.ToString("N2"),
-                    Maand02 = (m.MaandCijfers[1].Cijfer == 0) ? "n/a" : m.MaandCijfers[1].Cijfer.ToString("N2"),
-                    Maand03 = (m.MaandCijfers[2].Cijfer == 0) ? "n/a" : m.MaandCijfers[2].Cijfer.ToString("N2"),
-                    Maand04 = (m.MaandCijfers[3].Cijfer == 0) ? "n/a" : m.MaandCijfers[3].Cijfer.ToString("N2"),
-                    Maand05 = (m.MaandCijfers[4].Cijfer == 0) ? "n/a" : m.MaandCijfers[4].Cijfer.ToString("N2"),
-                    Maand06 = (m.MaandCijfers[5].Cijfer == 0) ? "n/a" : m.MaandCijfers[5].Cijfer.ToString("N2"),
-                    Maand07 = (m.MaandCijfers[6].Cijfer == 0) ? "n/a" : m.MaandCijfers[6].Cijfer.ToString("N2"),
-                    Maand08 = (m.MaandCijfers[7].Cijfer == 0) ? "n/a" : m.MaandCijfers[7].Cijfer.ToString("N2"),
-                    Maand09 = (m.MaandCijfers[8].Cijfer == 0) ? "n/a" : m.MaandCijfers[8].Cijfer.ToString("N2"),
-                    Maand10 = (m.MaandCijfers[9].Cijfer == 0) ? "n/a" : m.MaandCijfers[9].Cijfer.ToString("N2"),
-                    Maand11 = (m.MaandCijfers[10].Cijfer == 0) ? "n/a" : m.MaandCijfers[10].Cijfer.ToString("N2"),
-                    Maand12 = (m.MaandCijfers[11].Cijfer == 0) ? "n/a" : m.MaandCijfers[11].Cijfer.ToString("N2"),
+                    Maand01 = (m.MaandVerbruiken[0].Waarde == 0) ? "n/a" : m.MaandVerbruiken[0].Waarde.ToString("N2"),
+                    Maand02 = (m.MaandVerbruiken[1].Waarde == 0) ? "n/a" : m.MaandVerbruiken[1].Waarde.ToString("N2"),
+                    Maand03 = (m.MaandVerbruiken[2].Waarde == 0) ? "n/a" : m.MaandVerbruiken[2].Waarde.ToString("N2"),
+                    Maand04 = (m.MaandVerbruiken[3].Waarde == 0) ? "n/a" : m.MaandVerbruiken[3].Waarde.ToString("N2"),
+                    Maand05 = (m.MaandVerbruiken[4].Waarde == 0) ? "n/a" : m.MaandVerbruiken[4].Waarde.ToString("N2"),
+                    Maand06 = (m.MaandVerbruiken[5].Waarde == 0) ? "n/a" : m.MaandVerbruiken[5].Waarde.ToString("N2"),
+                    Maand07 = (m.MaandVerbruiken[6].Waarde == 0) ? "n/a" : m.MaandVerbruiken[6].Waarde.ToString("N2"),
+                    Maand08 = (m.MaandVerbruiken[7].Waarde == 0) ? "n/a" : m.MaandVerbruiken[7].Waarde.ToString("N2"),
+                    Maand09 = (m.MaandVerbruiken[8].Waarde == 0) ? "n/a" : m.MaandVerbruiken[8].Waarde.ToString("N2"),
+                    Maand10 = (m.MaandVerbruiken[9].Waarde == 0) ? "n/a" : m.MaandVerbruiken[9].Waarde.ToString("N2"),
+                    Maand11 = (m.MaandVerbruiken[10].Waarde == 0) ? "n/a" : m.MaandVerbruiken[10].Waarde.ToString("N2"),
+                    Maand12 = (m.MaandVerbruiken[11].Waarde == 0) ? "n/a" : m.MaandVerbruiken[11].Waarde.ToString("N2"),
 
-                    Level00 = (m.TotaalperJaar == 0) ? 9 : this.MaandStats.GetLevel(m.TotaalperJaar, this.MaandStats.MaandGegevens[12].MaandStatistiek),
-                    Level01 = (m.MaandCijfers[0].Cijfer == 0) ? 9 : this.MaandStats.GetLevel(m.MaandCijfers[0].Cijfer, this.MaandStats.MaandGegevens[0].MaandStatistiek),
-                    Level02 = (m.MaandCijfers[1].Cijfer == 0) ? 9 : this.MaandStats.GetLevel(m.MaandCijfers[1].Cijfer, this.MaandStats.MaandGegevens[1].MaandStatistiek),
-                    Level03 = (m.MaandCijfers[2].Cijfer == 0) ? 9 : this.MaandStats.GetLevel(m.MaandCijfers[2].Cijfer, this.MaandStats.MaandGegevens[2].MaandStatistiek),
-                    Level04 = (m.MaandCijfers[3].Cijfer == 0) ? 9 : this.MaandStats.GetLevel(m.MaandCijfers[3].Cijfer, this.MaandStats.MaandGegevens[3].MaandStatistiek),
-                    Level05 = (m.MaandCijfers[4].Cijfer == 0) ? 9 : this.MaandStats.GetLevel(m.MaandCijfers[4].Cijfer, this.MaandStats.MaandGegevens[4].MaandStatistiek),
-                    Level06 = (m.MaandCijfers[5].Cijfer == 0) ? 9 : this.MaandStats.GetLevel(m.MaandCijfers[5].Cijfer, this.MaandStats.MaandGegevens[5].MaandStatistiek),
-                    Level07 = (m.MaandCijfers[6].Cijfer == 0) ? 9 : this.MaandStats.GetLevel(m.MaandCijfers[6].Cijfer, this.MaandStats.MaandGegevens[6].MaandStatistiek),
-                    Level08 = (m.MaandCijfers[7].Cijfer == 0) ? 9 : this.MaandStats.GetLevel(m.MaandCijfers[7].Cijfer, this.MaandStats.MaandGegevens[7].MaandStatistiek),
-                    Level09 = (m.MaandCijfers[8].Cijfer == 0) ? 9 : this.MaandStats.GetLevel(m.MaandCijfers[8].Cijfer, this.MaandStats.MaandGegevens[8].MaandStatistiek),
-                    Level10 = (m.MaandCijfers[9].Cijfer == 0) ? 9 : this.MaandStats.GetLevel(m.MaandCijfers[9].Cijfer, this.MaandStats.MaandGegevens[9].MaandStatistiek),
-                    Level11 = (m.MaandCijfers[10].Cijfer == 0) ? 9 : this.MaandStats.GetLevel(m.MaandCijfers[10].Cijfer, this.MaandStats.MaandGegevens[10].MaandStatistiek),
-                    Level12 = (m.MaandCijfers[11].Cijfer == 0) ? 9 : this.MaandStats.GetLevel(m.MaandCijfers[11].Cijfer, this.MaandStats.MaandGegevens[11].MaandStatistiek),
+                    Level00 = (m.TotaalperJaar == 0) ? 9 : this.MaandRapportStatistieken.GetLevel(m.TotaalperJaar, this.MaandRapportStatistieken.MaandGegevens[12].StatistiekWaardenM),
+                    Level01 = (m.MaandVerbruiken[0].Waarde == 0) ? 9 : this.MaandRapportStatistieken.GetLevel(m.MaandVerbruiken[0].Waarde, this.MaandRapportStatistieken.MaandGegevens[0].StatistiekWaardenM),
+                    Level02 = (m.MaandVerbruiken[1].Waarde == 0) ? 9 : this.MaandRapportStatistieken.GetLevel(m.MaandVerbruiken[1].Waarde, this.MaandRapportStatistieken.MaandGegevens[1].StatistiekWaardenM),
+                    Level03 = (m.MaandVerbruiken[2].Waarde == 0) ? 9 : this.MaandRapportStatistieken.GetLevel(m.MaandVerbruiken[2].Waarde, this.MaandRapportStatistieken.MaandGegevens[2].StatistiekWaardenM),
+                    Level04 = (m.MaandVerbruiken[3].Waarde == 0) ? 9 : this.MaandRapportStatistieken.GetLevel(m.MaandVerbruiken[3].Waarde, this.MaandRapportStatistieken.MaandGegevens[3].StatistiekWaardenM),
+                    Level05 = (m.MaandVerbruiken[4].Waarde == 0) ? 9 : this.MaandRapportStatistieken.GetLevel(m.MaandVerbruiken[4].Waarde, this.MaandRapportStatistieken.MaandGegevens[4].StatistiekWaardenM),
+                    Level06 = (m.MaandVerbruiken[5].Waarde == 0) ? 9 : this.MaandRapportStatistieken.GetLevel(m.MaandVerbruiken[5].Waarde, this.MaandRapportStatistieken.MaandGegevens[5].StatistiekWaardenM),
+                    Level07 = (m.MaandVerbruiken[6].Waarde == 0) ? 9 : this.MaandRapportStatistieken.GetLevel(m.MaandVerbruiken[6].Waarde, this.MaandRapportStatistieken.MaandGegevens[6].StatistiekWaardenM),
+                    Level08 = (m.MaandVerbruiken[7].Waarde == 0) ? 9 : this.MaandRapportStatistieken.GetLevel(m.MaandVerbruiken[7].Waarde, this.MaandRapportStatistieken.MaandGegevens[7].StatistiekWaardenM),
+                    Level09 = (m.MaandVerbruiken[8].Waarde == 0) ? 9 : this.MaandRapportStatistieken.GetLevel(m.MaandVerbruiken[8].Waarde, this.MaandRapportStatistieken.MaandGegevens[8].StatistiekWaardenM),
+                    Level10 = (m.MaandVerbruiken[9].Waarde == 0) ? 9 : this.MaandRapportStatistieken.GetLevel(m.MaandVerbruiken[9].Waarde, this.MaandRapportStatistieken.MaandGegevens[9].StatistiekWaardenM),
+                    Level11 = (m.MaandVerbruiken[10].Waarde == 0) ? 9 : this.MaandRapportStatistieken.GetLevel(m.MaandVerbruiken[10].Waarde, this.MaandRapportStatistieken.MaandGegevens[10].StatistiekWaardenM),
+                    Level12 = (m.MaandVerbruiken[11].Waarde == 0) ? 9 : this.MaandRapportStatistieken.GetLevel(m.MaandVerbruiken[11].Waarde, this.MaandRapportStatistieken.MaandGegevens[11].StatistiekWaardenM),
                 };
                 this.MaandRapport.Add(lined);
 
@@ -1561,25 +1564,25 @@ namespace SlimmeMeterPortaal.ViewModels
             };
             this.Meterstanden.Add(Meterstand1);
 
-            foreach (MaandVerbruik m in this.MaandVerbruiken)
+            foreach (MaandVerbruikLijst m in this.MaandVerbruiken)
             {
                 Meterstand Meterstand2 = new Meterstand
                 {
                     Jaar = m.Jaar.ToString("D2"),
                     Eenheid = this.Eenheid,
 
-                    Maand01 = m.MaandCijfers[0].MeterstandTotaal.ToString("N0"),
-                    Maand02 = m.MaandCijfers[1].MeterstandTotaal.ToString("N0"),
-                    Maand03 = m.MaandCijfers[2].MeterstandTotaal.ToString("N0"),
-                    Maand04 = m.MaandCijfers[3].MeterstandTotaal.ToString("N0"),
-                    Maand05 = m.MaandCijfers[4].MeterstandTotaal.ToString("N0"),
-                    Maand06 = m.MaandCijfers[5].MeterstandTotaal.ToString("N0"),
-                    Maand07 = m.MaandCijfers[6].MeterstandTotaal.ToString("N0"),
-                    Maand08 = m.MaandCijfers[7].MeterstandTotaal.ToString("N0"),
-                    Maand09 = m.MaandCijfers[8].MeterstandTotaal.ToString("N0"),
-                    Maand10 = m.MaandCijfers[9].MeterstandTotaal.ToString("N0"),
-                    Maand11 = m.MaandCijfers[10].MeterstandTotaal.ToString("N0"),
-                    Maand12 = m.MaandCijfers[11].MeterstandTotaal.ToString("N0")
+                    Maand01 = m.MaandVerbruiken[0].MeterstandTotaal.ToString("N0"),
+                    Maand02 = m.MaandVerbruiken[1].MeterstandTotaal.ToString("N0"),
+                    Maand03 = m.MaandVerbruiken[2].MeterstandTotaal.ToString("N0"),
+                    Maand04 = m.MaandVerbruiken[3].MeterstandTotaal.ToString("N0"),
+                    Maand05 = m.MaandVerbruiken[4].MeterstandTotaal.ToString("N0"),
+                    Maand06 = m.MaandVerbruiken[5].MeterstandTotaal.ToString("N0"),
+                    Maand07 = m.MaandVerbruiken[6].MeterstandTotaal.ToString("N0"),
+                    Maand08 = m.MaandVerbruiken[7].MeterstandTotaal.ToString("N0"),
+                    Maand09 = m.MaandVerbruiken[8].MeterstandTotaal.ToString("N0"),
+                    Maand10 = m.MaandVerbruiken[9].MeterstandTotaal.ToString("N0"),
+                    Maand11 = m.MaandVerbruiken[10].MeterstandTotaal.ToString("N0"),
+                    Maand12 = m.MaandVerbruiken[11].MeterstandTotaal.ToString("N0")
                 };
                 this.Meterstanden.Add(Meterstand2);
             }

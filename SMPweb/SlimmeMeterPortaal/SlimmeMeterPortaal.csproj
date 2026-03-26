@@ -187,16 +187,16 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>SlimmeMeterPortaal.edmx</DependentUpon>
     </Compile>
-    <Compile Include="ViewModels\MaandVerbruik.cs" />
+    <Compile Include="ViewModels\MaandVerbruikLijst.cs" />
     <Compile Include="ViewModels\DagVerbruik.cs" />
-    <Compile Include="ViewModels\MaandStats.cs" />
-    <Compile Include="ViewModels\Stats.cs" />
-    <Compile Include="ViewModels\DeviceVM.cs" />
-    <Compile Include="ViewModels\StroomMetingen.cs" />
-    <Compile Include="ViewModels\GasMetingen.cs" />
-    <Compile Include="ViewModels\MessageVM.cs" />
-    <Compile Include="ViewModels\Meter.cs" />
-    <Compile Include="ViewModels\SMP_Report.cs" />
+    <Compile Include="ViewModels\MaandRapportStatistieken.cs" />
+    <Compile Include="ViewModels\DagRapportStatistieken.cs" />
+    <Compile Include="ViewModels\VerbruiksMeter.cs" />
+    <Compile Include="ViewModels\RawStroomDagMeting.cs" />
+    <Compile Include="ViewModels\RawGasDagMeting.cs" />
+    <Compile Include="ViewModels\MessageViewModel.cs" />
+    <Compile Include="ViewModels\RawMeter.cs" />
+    <Compile Include="ViewModels\SmpViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap-grid.css" />
@@ -279,7 +279,7 @@
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
-    <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\Home\IndexDag.cshtml" />
     <EntityDeploy Include="SlimmeMeterPortaal.edmx">
       <Generator>EntityModelCodeGenerator</Generator>
       <LastGenOutput>SlimmeMeterPortaal.Designer.cs</LastGenOutput>
@@ -289,7 +289,7 @@
     </Content>
     <Content Include="Views\Shared\_LayoutOLD.cshtml" />
     <Content Include="Views\Home\DagRapport.cshtml" />
-    <Content Include="Views\Home\IndexM.cshtml" />
+    <Content Include="Views\Home\IndexMaand.cshtml" />
     <Content Include="Views\Home\MaandRapport.cshtml" />
   </ItemGroup>
   <ItemGroup>

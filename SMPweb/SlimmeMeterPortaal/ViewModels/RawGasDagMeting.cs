@@ -3,22 +3,23 @@ using System.Collections.Generic;
 
 namespace SlimmeMeterPortaal.ViewModels
 {
-    public class GasMetingen
+    public class RawGasDagMeting
     {       
         public DateTime VerbruiksDatum { get; set; }
-        public string DeviceID { get; set; }
+        public string MeterIdentificatie { get; set; }
         
-        public GasDagMeting MetingLijst = new GasDagMeting();
+        public GasTimeSlotMetingLijst GasTimeSlotMetingLijst = new GasTimeSlotMetingLijst();
 
     }
-    public class GasDagMeting
+    // Hieronder de ruwe datastructuur zoals die door de API wordt aangeleverd, per datum. 
+    public class GasTimeSlotMetingLijst
     {
         public string meter_identifier { get; set; }
 
-        public List<GasUsage> usages = new List<GasUsage>();
+        public List<GasTimeSlotMeting> usages = new List<GasTimeSlotMeting>();
 
     }
-    public class GasUsage
+    public class GasTimeSlotMeting
     {
         public string time { get; set; }
         public string delivery { get; set; }

@@ -15,21 +15,34 @@ using System.Threading.Tasks;
 namespace SlimmeMeterPortaal.ViewModels
 {
    
-    public class SMP_Report
+    public class SmpViewModel
 
     {
-        public MessageVM Message = new MessageVM();
-
-        [Required(ErrorMessage = "Rapportage datum is een verplicht veld")]
-        [DisplayName("Rapporteer t/m deze datum")]
-        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
-        [DataType(DataType.DateTime)]
-        public DateTime Rapportagedatum { get; set; }
+        // Input screen variables
+        public DateTime RapportageDatum { get
+            {
+                // Screen input  via RapportageDatumString because that makes validation much easier
+                string[] formats = { "yyyy-MM-dd" };
+                DateTime result;
+                if (DateTime.TryParseExact(this.RapportageDatumString, formats,
+                                        System.Globalization.CultureInfo.InvariantCulture,
+                                        System.Globalization.DateTimeStyles.None, out DateTime testdate))
+                {
+                    result = testdate;
+                }
+                else
+                {
+                    result = DateTime.MinValue;
+                }
+                return result;
+            }
+            set { }
+        }
 
         [Required(ErrorMessage = "Rapportage datum is een verplicht veld, format yyyy-mm-dd")]
         [StringLength(10)]
         [DisplayName("Rapporteer t/m deze datum")]    
-        public string Rapportagestringdatum { get; set; }
+        public string RapportageDatumString { get; set; }
        
         [Required(ErrorMessage = "Referentie jaren is een verplicht veld")]
         [DisplayName("Aantal jaren historie ter vergelijking")]
@@ -37,21 +50,25 @@ namespace SlimmeMeterPortaal.ViewModels
 
         [Required(ErrorMessage = "Referentie dagen is een verplicht veld")]
         [DisplayName("Aantal dagen per referentiejaar ter vergelijking")]
-        public int ReferentieDagen { get; set; } = 20;  
+        public int ReferentieDagen { get; set; } = 20;
+
+        public MessageViewModel MessageViewModel = new MessageViewModel();
+
+        // List of meters
+        public List<VerbruiksMeter> VerbruiksMeters = new List<VerbruiksMeter>();  
         
-        public List<DeviceVM> Devicelijst = new List<DeviceVM>();
-
-        public string URL = "https://app.slimmemeterportal.nl/userapi/v1/connections";
-
+        // Which meters to include
         public string IncludeStroom { get; set; }
         public string IncludeGas { get; set; }
-               
+        
+        // Variables needed for progress bar (not yet implemented)
         public string SMP_Guid { get; set; }
-
         public DateTime Timestamp { get; set; }
-         
+
+        public string URL = "https://app.slimmemeterportal.nl/userapi/v1/connections";
         public string APIkey
         {
+            // Fetch API key from dataset to prevent inclusion in coding
             get
             {
                 RunspaceConfiguration runspaceConfiguration = RunspaceConfiguration.Create();
@@ -80,7 +97,8 @@ namespace SlimmeMeterPortaal.ViewModels
             }
         }
 
-        public void CleanDB(SlimmeMeterPortaalEntities db)
+// Hieronder alle algemene methods
+        public void InitProgressBar(SlimmeMeterPortaalEntities db)
         {
             DateTime now = DateTime.Now.AddDays(-1);
 
@@ -103,8 +121,8 @@ namespace SlimmeMeterPortaal.ViewModels
             }
             catch (Exception e)
             {
-                this.Message.Tekst = e.Message;
-                this.Message.Level = this.Message.Error;
+                this.MessageViewModel.Tekst = e.Message;
+                this.MessageViewModel.Level = this.MessageViewModel.Error;
 
             }        
            
@@ -118,7 +136,7 @@ namespace SlimmeMeterPortaal.ViewModels
 
             // Determine maximum date
             DateTime maxd = DateTime.MinValue;
-            foreach (DeviceVM dv in this.Devicelijst)
+            foreach (VerbruiksMeter dv in this.VerbruiksMeters)
             {
                 if (dv.LastDateWithData > maxd)
                 {
@@ -127,7 +145,7 @@ namespace SlimmeMeterPortaal.ViewModels
             }
             // Determine minimum date
             DateTime mind = DateTime.MinValue;
-            foreach (DeviceVM dv in this.Devicelijst)
+            foreach (VerbruiksMeter dv in this.VerbruiksMeters)
             {
                 if (dv.Startdate > mind)
                 {
@@ -137,11 +155,11 @@ namespace SlimmeMeterPortaal.ViewModels
             int miny = mind.Year;
             mind = new DateTime(miny + 1, 1, 1);
 
-            if (string.IsNullOrEmpty(this.Rapportagestringdatum))
+            if (string.IsNullOrEmpty(this.RapportageDatumString))
                 if (type == 0)  
                 {                    
-                    this.Rapportagedatum = maxd;
-                    this.Rapportagestringdatum = maxd.ToString("yyyy-MM-dd");
+                    this.RapportageDatum = maxd;
+                    this.RapportageDatumString = maxd.ToString("yyyy-MM-dd");
                 }
                 else
                 {
@@ -150,7 +168,7 @@ namespace SlimmeMeterPortaal.ViewModels
             else 
             {
                 string[] formats = { "yyyy-MM-dd" };                
-                if (!DateTime.TryParseExact(this.Rapportagestringdatum, formats,
+                if (!DateTime.TryParseExact(this.RapportageDatumString, formats,
                                         System.Globalization.CultureInfo.InvariantCulture,
                                         System.Globalization.DateTimeStyles.None, out DateTime testdate))
                 {
@@ -158,12 +176,12 @@ namespace SlimmeMeterPortaal.ViewModels
                 }
                 else
                 {
-                    this.Rapportagedatum = testdate;
-                    if (this.Rapportagedatum > maxd)
+                    this.RapportageDatum = testdate;
+                    if (this.RapportageDatum > maxd)
                     {
                         result = "Van deze rapportagedatum hebben we nog geen data";
                     }
-                    if (this.Rapportagedatum.AddYears(-1 * this.ReferentieJaren) < mind)
+                    if (this.RapportageDatum.AddYears(-1 * this.ReferentieJaren) < mind)
                     {
                         result = "Op deze rapportagedatum hebben we nog niet " + this.ReferentieJaren.ToString("d2") + " referentiejaren beschikbaar.";
                     }
@@ -174,7 +192,7 @@ namespace SlimmeMeterPortaal.ViewModels
             return result;
         }
 
-        public async Task<string> GetMeters()
+        public async Task<string> MaakVerbruiksMeterLijst()
         {           
             int retrycount = 0;
             string result = "Nok";
@@ -199,8 +217,8 @@ namespace SlimmeMeterPortaal.ViewModels
                 HttpResponseMessage response = await httpClient.SendAsync(request);
                 if (!response.IsSuccessStatusCode)  
                 {
-                    this.Message.Tekst = response.StatusCode.ToString() + " ---> " + response.ReasonPhrase;
-                    this.Message.Level = this.Message.Error;
+                    this.MessageViewModel.Tekst = response.StatusCode.ToString() + " ---> " + response.ReasonPhrase;
+                    this.MessageViewModel.Level = this.MessageViewModel.Error;
                     retrycount += 1;
                     Thread.Sleep(5000);
                 }
@@ -209,14 +227,14 @@ namespace SlimmeMeterPortaal.ViewModels
                     result = "Ok";
                     var responseString = await response.Content.ReadAsStringAsync();
                     // Parse the response body
-                    var meterlist = JsonConvert.DeserializeObject<List<Meter>>(responseString);
+                    var meterlist = JsonConvert.DeserializeObject<List<RawMeter>>(responseString);
 
-                    foreach (Meter m in meterlist)
+                    foreach (RawMeter m in meterlist)
                     {
-                        DeviceVM dv = new DeviceVM(m.connection_type, this.IncludeGas, this.IncludeStroom)
+                        VerbruiksMeter dv = new VerbruiksMeter(m.connection_type, this.IncludeGas, this.IncludeStroom)
                         {
                             Startdate = DateTime.ParseExact(m.start_date, "dd-MM-yyyy", null),
-                            DeviceID = m.meter_identifier
+                            MeterIdentificatie = m.meter_identifier
                         };
                         if (!string.IsNullOrEmpty(m.end_date))
                         {
@@ -234,7 +252,7 @@ namespace SlimmeMeterPortaal.ViewModels
                         do
                         {
                             string datestring = ldate.ToString("dd-MM-yyyy");
-                            Task<string> longRunningTask = dv.GetSMPday(datestring, this.APIkey, "Lastdate");
+                            Task<string> longRunningTask = dv.HaalEenDagRuwVerbruik(datestring, this.APIkey, "Lastdate");
                             result2 = await longRunningTask;
 
                             if (result2 == "Last")
@@ -249,7 +267,7 @@ namespace SlimmeMeterPortaal.ViewModels
                         } while (!ldatefound);
 
 
-                        this.Devicelijst.Add(dv);
+                        this.VerbruiksMeters.Add(dv);
                     }
                     request.Dispose();
                     response.Dispose();
@@ -259,19 +277,21 @@ namespace SlimmeMeterPortaal.ViewModels
               
             return result;
         }
-       
-        public async Task<string> GetUsage()
+ 
+        
+// Hieronder alle methods voor de dagrapportage
+        public async Task<string> MaakDagRuweVerbruiksLijst()
         {
             string result = "Nok";
-            foreach (DeviceVM dvm in this.Devicelijst)
+            foreach (VerbruiksMeter dvm in this.VerbruiksMeters)
             {
-                if (!dvm.ReportDevice) { continue; }
+                if (!dvm.MeterRapportMaken) { continue; }
                 
                 for (int i = -6; i <= 0; i++)
                 {
-                    DateTime entrydate = this.Rapportagedatum.AddDays(i);
+                    DateTime entrydate = this.RapportageDatum.AddDays(i);
                     string datestring = entrydate.ToString("dd-MM-yyyy");
-                    Task<string> longRunningTask = dvm.GetSMPday(datestring, this.APIkey, "Usage");
+                    Task<string> longRunningTask = dvm.HaalEenDagRuwVerbruik(datestring, this.APIkey, "Usage");
                     result = await longRunningTask;
 
                 }
@@ -280,12 +300,12 @@ namespace SlimmeMeterPortaal.ViewModels
             return result;
         }
 
-        public async Task<string> GetReference()
+        public async Task<string> MaakDagReferentieRuweVerbruiksLijst()
         {
             string result = "Nok";
-            foreach (DeviceVM dvm in this.Devicelijst)
+            foreach (VerbruiksMeter dvm in this.VerbruiksMeters)
             {
-                if (!dvm.ReportDevice) { continue; }
+                if (!dvm.MeterRapportMaken) { continue; }
                 for (int year = -1 * this.ReferentieJaren; year < 0; year++)
                 {
                     
@@ -295,10 +315,10 @@ namespace SlimmeMeterPortaal.ViewModels
                     
                     for (int day = daymin; day < daymax; day++)
                     {
-                        DateTime entrydate = this.Rapportagedatum.AddYears(year).AddDays(day);
+                        DateTime entrydate = this.RapportageDatum.AddYears(year).AddDays(day);
                         string datestring = entrydate.ToString("dd-MM-yyyy");
                                    
-                        Task<string> longRunningTask = dvm.GetSMPday(datestring, this.APIkey, "Reference");
+                        Task<string> longRunningTask = dvm.HaalEenDagRuwVerbruik(datestring, this.APIkey, "Reference");
                         result = await longRunningTask;
                         
                     }
@@ -307,12 +327,13 @@ namespace SlimmeMeterPortaal.ViewModels
             return result;
         }
 
-        public void Consolidate()
+        public void ConsolideerRuweDagVerbruiksData()
         {
-            foreach (DeviceVM dvm in this.Devicelijst)
+            // Consolideer de data in de ruwe verbruiksdata. Doet dit voor zowel de te rapporteren dagen, als voor de referentie dagen 
+            foreach (VerbruiksMeter dvm in this.VerbruiksMeters)
             {
-                if (!dvm.ReportDevice) { continue; }
-                switch (dvm.DeviceType)
+                if (!dvm.MeterRapportMaken) { continue; }
+                switch (dvm.MeterType)
                 {
                     case "gas":
                         dvm.GasConsolidatie("Usage");
@@ -327,42 +348,43 @@ namespace SlimmeMeterPortaal.ViewModels
             return;
         }
 
-        public void Statistics()
+        public void BerekenDagRapportStatistieken()
         {
-            foreach (DeviceVM dvm in this.Devicelijst)                
+            foreach (VerbruiksMeter dvm in this.VerbruiksMeters)                
             {
-                if (!dvm.ReportDevice) { continue; }
-                dvm.GetStats();                
+                if (!dvm.MeterRapportMaken) { continue; }
+                dvm.BerekenDagRapportStatistieken();                
             }
             return;            
         }
 
-        public void DagRapport()
+        public void MaakDagRapport()
         {
-            foreach (DeviceVM dvm in this.Devicelijst)
+            foreach (VerbruiksMeter dvm in this.VerbruiksMeters)
             {
-                if (!dvm.ReportDevice) { continue; }
+                if (!dvm.MeterRapportMaken) { continue; }
                 dvm.Create_DagRapport();
             }
             return;
         }
 
+// Hieronder de methodes voor de maandrapportage
         public async Task<string> GetMonthUsage()
         {
             string result = "Nok";
-            foreach (DeviceVM dvm in this.Devicelijst)
+            foreach (VerbruiksMeter dvm in this.VerbruiksMeters)
             {
-                if (!dvm.ReportDevice) { continue; }
-                if (dvm.LastDateWithData < this.Rapportagedatum)
+                if (!dvm.MeterRapportMaken) { continue; }
+                if (dvm.LastDateWithData < this.RapportageDatum)
                 {
                     dvm.RapportageDatum = dvm.LastDateWithData;
                 }
                 else
                 {
-                    dvm.RapportageDatum = this.Rapportagedatum;
+                    dvm.RapportageDatum = this.RapportageDatum;
                 }
-                int firstYear = this.Rapportagedatum.AddYears(-1 * this.ReferentieJaren).Year;
-                int currentYear = this.Rapportagedatum.Year;
+                int firstYear = this.RapportageDatum.AddYears(-1 * this.ReferentieJaren).Year;
+                int currentYear = this.RapportageDatum.Year;
                 for (int i = firstYear; i <= currentYear; i++)
                 {
                     
@@ -377,10 +399,10 @@ namespace SlimmeMeterPortaal.ViewModels
 
         public void GetMaandCijfers()       
         {
-            foreach (DeviceVM dvm in this.Devicelijst)
+            foreach (VerbruiksMeter dvm in this.VerbruiksMeters)
             {
-                if (!dvm.ReportDevice) { continue; }
-                switch (dvm.DeviceType)
+                if (!dvm.MeterRapportMaken) { continue; }
+                switch (dvm.MeterType)
                 {
                     case "gas":
                         dvm.GasMaandCijfers();
@@ -395,9 +417,9 @@ namespace SlimmeMeterPortaal.ViewModels
 
         public void GetMonthStats()
         {
-            foreach (DeviceVM dvm in this.Devicelijst)
+            foreach (VerbruiksMeter dvm in this.VerbruiksMeters)
             {
-                if (!dvm.ReportDevice) { continue; }
+                if (!dvm.MeterRapportMaken) { continue; }
                 dvm.MonthStats();
             }
             return;
@@ -405,9 +427,9 @@ namespace SlimmeMeterPortaal.ViewModels
 
         public void MaandRapport()
         {
-            foreach (DeviceVM dvm in this.Devicelijst)
+            foreach (VerbruiksMeter dvm in this.VerbruiksMeters)
             {
-                if (!dvm.ReportDevice) { continue; }
+                if (!dvm.MeterRapportMaken) { continue; }
                 dvm.Create_MaandRapport();
             }
             return;

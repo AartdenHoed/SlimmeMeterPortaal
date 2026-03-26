@@ -5,7 +5,7 @@ using System.Web;
 
 namespace SlimmeMeterPortaal.ViewModels
 {
-    public class MessageVM
+    public class MessageViewModel
     {
         public string Error { get { return "E"; } }
         public string Warning { get { return "W"; } }

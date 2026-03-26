@@ -5,11 +5,11 @@ using System.Web;
 
 namespace SlimmeMeterPortaal.ViewModels
 {
-    public class MaandStats
+    public class MaandRapportStatistieken
     {
         public List<MaandGegeven> MaandGegevens = new List<MaandGegeven>();            
 
-        public int GetLevel(decimal d, MYStatistiek m)
+        public int GetLevel(decimal d, StatistiekWaardenM m)
         {
 
             if (d < m.Min)
@@ -46,12 +46,11 @@ namespace SlimmeMeterPortaal.ViewModels
         public string MaandLabel { get; set; }
         public int AantalWaarnemingen { get; set; }
 
-        public MYStatistiek MaandStatistiek = new MYStatistiek();
-    }
-     
+        public StatistiekWaardenM StatistiekWaardenM = new StatistiekWaardenM();
+    }     
     
 
-    public class MYStatistiek
+    public class StatistiekWaardenM
     {
         public decimal Laag { get
             {

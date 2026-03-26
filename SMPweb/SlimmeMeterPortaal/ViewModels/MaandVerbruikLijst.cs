@@ -2,22 +2,22 @@
 
 namespace SlimmeMeterPortaal.ViewModels
 {
-    public class MaandVerbruik
+    public class MaandVerbruikLijst
     {
         public int Jaar { get; set; }
-        public string DeviceID { get; set; }
+        public string MeterIdentificatie { get; set; }
         public string VerbruiksType { get; set; }
         
-        public List<MaandCijfer> MaandCijfers = new List<MaandCijfer>();
+        public List<MaandVerbruik> MaandVerbruiken = new List<MaandVerbruik>();
 
         public decimal TotaalperJaar
         {
             get
             {
                 decimal totaalperjaar = 0;
-                foreach (MaandCijfer m in this.MaandCijfers)
+                foreach (MaandVerbruik m in this.MaandVerbruiken)
                 {
-                    totaalperjaar += m.Cijfer;
+                    totaalperjaar += m.Waarde;
 
                 };
                 return totaalperjaar;
@@ -25,11 +25,11 @@ namespace SlimmeMeterPortaal.ViewModels
         }
     }
       
-    public class MaandCijfer
+    public class MaandVerbruik
     {
         public string MaandLabel {  get; set; }
         public int MaandNummer { get; set; }          
-        public decimal Cijfer { get; set; }
+        public decimal Waarde { get; set; }
         public decimal MeterstandTotaal { get; set; }
         public decimal MeterstandNormaalTarief { get; set; }
         public decimal MeterstandLaagTarief { get; set; }

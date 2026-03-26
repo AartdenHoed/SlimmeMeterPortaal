@@ -3,22 +3,23 @@ using System.Collections.Generic;
 
 namespace SlimmeMeterPortaal.ViewModels
 {
-    public class StroomMetingen
+    public class RawStroomDagMeting
     {
         public DateTime VerbruiksDatum { get; set; }
-        public string DeviceID { get; set; }
+        public string MeterIdentificatie { get; set; }
         
-        public StroomDagMeting MetingLijst = new StroomDagMeting();
+        public StroomTimeSlotMetingLijst StroomTimeSlotMetingLijst = new StroomTimeSlotMetingLijst();
     }
 
-    public class StroomDagMeting
+    // Hieronder de ruwe datastructuur zoals die door de API wordt aangeleverd, per datum. 
+    public class StroomTimeSlotMetingLijst
     {        
         public string meter_identifier { get; set; }
 
-        public List<StroomUsage> usages = new List<StroomUsage>();
+        public List<StroomTimeSlotMeting> usages = new List<StroomTimeSlotMeting>();
 
     }
-    public class StroomUsage
+    public class StroomTimeSlotMeting
     {
         public string time { get; set; }
         public string delivery_high { get; set; }

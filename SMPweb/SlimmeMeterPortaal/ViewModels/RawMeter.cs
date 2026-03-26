@@ -5,7 +5,8 @@ using System.Web;
 
 namespace SlimmeMeterPortaal.ViewModels
 {
-    public class Meter
+    // Dit is de ruwe datastructuur zoals de lijst met verbruiksmeters wordt aangeleverd via de API
+    public class RawMeter
     {
     public string meter_identifier { get; set; }
     public string connection_type { get; set; }

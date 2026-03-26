@@ -1,5 +1,9 @@
-﻿using SlimmeMeterPortaal.ViewModels;
+﻿using Microsoft.Ajax.Utilities;
+using SlimmeMeterPortaal.ViewModels;
 using System;
+using System.Drawing;
+using System.Management.Automation.Language;
+using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -10,115 +14,116 @@ namespace SlimmeMeterPortaal.Controllers
 
         private readonly SlimmeMeterPortaalEntities db = new SlimmeMeterPortaalEntities();
         
-        public async Task<ActionResult> Index()
+        public async Task<ActionResult> IndexDag()
+        // Startscherm voor dagrapportage
         {
-            SMP_Report SMP_report = new SMP_Report
+            SmpViewModel SmpViewModel = new SmpViewModel
             {
                 IncludeGas = "Y",
                 IncludeStroom = "Y",
                 SMP_Guid = Guid.NewGuid().ToString(),
                 Timestamp = DateTime.Now
             };
-            SMP_report.CleanDB(db);
+            SmpViewModel.InitProgressBar(db);
                        
             // Fetch cookie value for input fields, if any
             HttpCookie inputyearsCookie = Request.Cookies["InputYears"];
             if (inputyearsCookie != null)
             {
-                SMP_report.ReferentieJaren = Int32.Parse(inputyearsCookie.Value);
+                SmpViewModel.ReferentieJaren = Int32.Parse(inputyearsCookie.Value);
             }
             HttpCookie inputdaysCookie = Request.Cookies["InputDays"];
             if (inputdaysCookie != null)
             {
-                SMP_report.ReferentieDagen = Int32.Parse(inputdaysCookie.Value);
+                SmpViewModel.ReferentieDagen = Int32.Parse(inputdaysCookie.Value);
             }
 
             string title = "Dagrapportage";
-            string lvl = SMP_report.Message.Info;
-            string msg = "Geef de gevraagde input voor de dagrapportage, of selecteer links de maandrapportage";
+            string lvl = SmpViewModel.MessageViewModel.Info;
+            string msg = "Geef de gevraagde input voor de dagrapportage en klik op 'Maak Dagrapport', of selecteer links het inputscherm voor de maandrapportage";
 
-            Task<string> longRunningTask = SMP_report.GetMeters();
-            string result = await longRunningTask;
-            longRunningTask.Dispose();
+            Task<string> maakVerbruiksMeterLijst = SmpViewModel.MaakVerbruiksMeterLijst();
+            string result = await maakVerbruiksMeterLijst;
+            maakVerbruiksMeterLijst.Dispose();
 
             if (result != "Ok")
             {
-                throw new Exception("AWAIT failed rc = " + result.ToString());
+                throw new Exception("Het maken van een lijst van verbruiksmeters ging fout, returncode = " + result.ToString());
             }
-            string val = SMP_report.DatumValidatie(0);
+            string val = SmpViewModel.DatumValidatie(0);
             if (val != "Ok")
             {
-                lvl = SMP_report.Message.Warning;
+                lvl = SmpViewModel.MessageViewModel.Warning;
                 msg = val;
             }
 
-            SMP_report.Message.Fill(title, lvl, msg);
+            SmpViewModel.MessageViewModel.Fill(title, lvl, msg);
 
             // Console.WriteLine("Stuur view");
 
-            return View("Index", SMP_report);
+            return View("IndexDag", SmpViewModel);
         }
 
-        public async Task<ActionResult> IndexM()
+        public async Task<ActionResult> IndexMaand()
         {
-            SMP_Report SMP_report = new SMP_Report
+            SmpViewModel SmpViewModel = new SmpViewModel
             {
                 IncludeGas = "Y",
                 IncludeStroom = "Y",
                 SMP_Guid = Guid.NewGuid().ToString(),
                 Timestamp = DateTime.Now
             };
-            SMP_report.CleanDB(db);
+            SmpViewModel.InitProgressBar(db);
 
             // Fetch cookie value for input fields, if any
             HttpCookie inputyearsCookie = Request.Cookies["InputYears"];
             if (inputyearsCookie != null)
             {
-                SMP_report.ReferentieJaren = Int32.Parse(inputyearsCookie.Value);
+                SmpViewModel.ReferentieJaren = Int32.Parse(inputyearsCookie.Value);
             }
 
             string title = "Maandrapportage";
-            string lvl = SMP_report.Message.Info;
-            string msg = "Geef de gevraagde input voor de maandrapportage, of selecteer links de dagrapportage";
+            string lvl = SmpViewModel.MessageViewModel.Info;
+            string msg = "Geef de gevraagde input voor de maandrapportage en klik op 'Maak Maandrapport', of selecteer links het inputscherm voor de dagrapportage";
 
-            Task<string> longRunningTask = SMP_report.GetMeters();
-            string result = await longRunningTask;
-            longRunningTask.Dispose();
+            Task<string> maakVerbruiksMeterLijst = SmpViewModel.MaakVerbruiksMeterLijst();
+            string result = await maakVerbruiksMeterLijst;
+            maakVerbruiksMeterLijst.Dispose();
 
             if (result != "Ok")
             {
-               throw new Exception("AWAIT failed rc = " + result.ToString());
+               throw new Exception("Het maken van een lijst van verbruiksmeters ging fout, returncode = " + result.ToString());
             }
-            string val = SMP_report.DatumValidatie(0);
+            string val = SmpViewModel.DatumValidatie(0);
             if (val != "Ok")
             {
-                lvl = SMP_report.Message.Warning;
+                lvl = SmpViewModel.MessageViewModel.Warning;
                 msg = val;
             }
-            SMP_report.Message.Fill(title, lvl, msg);
+            SmpViewModel.MessageViewModel.Fill(title, lvl, msg);
 
             // Console.WriteLine("Stuur view");
 
-            return View("IndexM", SMP_report);
+            return View("IndexMaand", SmpViewModel);
         }
 
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> DagRapport(SMP_Report SMP_report)
+        public async Task<ActionResult> DagRapport(SmpViewModel SmpViewModel)
         {
 
             // Set cookie values according to input screen
             HttpCookie inputdaysCookie = new HttpCookie("InputDays")
             {
-                Value = SMP_report.ReferentieDagen.ToString(),
+                Value = SmpViewModel.ReferentieDagen.ToString(),
                 HttpOnly = true,
                 Path = "/",
                 Expires = DateTime.Now.AddDays(366)
             };
             HttpCookie inputyearsCookie = new HttpCookie("InputYears")
             {
-                Value = SMP_report.ReferentieJaren.ToString(),
+                Value = SmpViewModel.ReferentieJaren.ToString(),
                 HttpOnly = true,
                 Path = "/",
                 Expires = DateTime.Now.AddDays(366)
@@ -127,68 +132,69 @@ namespace SlimmeMeterPortaal.Controllers
             Response.Cookies.Add(inputyearsCookie);
 
             string title = "Dagrapportage";
-            string lvl = SMP_report.Message.Info;
+            string lvl = SmpViewModel.MessageViewModel.Info;
             string msg = "Gebruik de knoppen links, of scroll naar beneden om de gevraagde rapportages te zien";
             string result;
 
-            if (SMP_report.Devicelijst.Count == 0)
+            if (SmpViewModel.VerbruiksMeters.Count == 0)
             {
-                Task<string> longRunningTask1 = SMP_report.GetMeters();
-                result = await longRunningTask1;
-                longRunningTask1.Dispose();
+                Task<string> maakVerbruiksMeterLijst = SmpViewModel.MaakVerbruiksMeterLijst();
+                result = await maakVerbruiksMeterLijst;
+                maakVerbruiksMeterLijst.Dispose();
                 if (result != "Ok")
                 {
-                    lvl = SMP_report.Message.Error;
-                    msg = "AWAIT GETMETERS failed code = " + result;
+                    lvl = SmpViewModel.MessageViewModel.Error;
+                    msg = "Het maken van een lijst van verbruiksmeters ging fout, returncode = " + result.ToString();
                 }
             }
-            string val = SMP_report.DatumValidatie(1);
+            string val = SmpViewModel.DatumValidatie(1);
             if (val != "Ok")
             {
-                lvl = SMP_report.Message.Warning;                
+                lvl = SmpViewModel.MessageViewModel.Warning;                
                 msg = val;
-                SMP_report.Message.Fill(title, lvl, msg);
-                return View("Index", SMP_report);
+                SmpViewModel.MessageViewModel.Fill(title, lvl, msg);
+                return View("IndexDag", SmpViewModel);
             }
 
-            Task<string> longRunningTask2 = SMP_report.GetUsage();
-            result = await longRunningTask2;
-            longRunningTask2.Dispose();
+            // Create a list of seven days with the raw data from the API site
+            Task<string> maakWeekRuweVerbruikLijst = SmpViewModel.MaakDagRuweVerbruiksLijst();
+            result = await maakWeekRuweVerbruikLijst;
+            maakWeekRuweVerbruikLijst.Dispose();
             if (result != "Ok")
             {
-                lvl = SMP_report.Message.Error;
-                msg = "AWAIT GETUSAGE failed rc = " + result;
+                lvl = SmpViewModel.MessageViewModel.Error;
+                msg = "Het maken van een lijst van dagen met ruwverbruik mislukte met returncode " + result;
             }
 
-            Task<string> longRunningTask3 = SMP_report.GetReference();
-            result = await longRunningTask3;
-            longRunningTask3.Dispose();
+            Task<string> maakWeekReferentieRuweVerbruiksLijst = SmpViewModel.MaakDagReferentieRuweVerbruiksLijst();
+            result = await maakWeekReferentieRuweVerbruiksLijst;
+            maakWeekReferentieRuweVerbruiksLijst.Dispose();
             if (result != "Ok")
             {
-                lvl = SMP_report.Message.Error;
-                msg = "AWAIT GETREFERENCE failed rc = " + result;
+                lvl = SmpViewModel.MessageViewModel.Error;
+                msg = "Het maken van een referentielijst van dagen met ruwverbruik mislukte met returncode " + result;
             }
 
-            SMP_report.Consolidate();
-            SMP_report.Statistics();
+            SmpViewModel.ConsolideerRuweDagVerbruiksData();
+            SmpViewModel.BerekenDagRapportStatistieken();
 
-            SMP_report.Message.Fill(title, lvl, msg);
+            SmpViewModel.MessageViewModel.Fill(title, lvl, msg);
 
-            SMP_report.DagRapport();
+            SmpViewModel.MaakDagRapport();
 
-            return View("DagRapport", SMP_report);
+            return View("DagRapport", SmpViewModel);
         }
 
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> MaandRapport(SMP_Report SMP_report)
+        public async Task<ActionResult> MaandRapport(SmpViewModel SmpViewModel)
         {
             // Set cookie values according to input screen
 
             HttpCookie inputyearsCookie = new HttpCookie("InputYears")
             {
-                Value = SMP_report.ReferentieJaren.ToString(),
+                Value = SmpViewModel.ReferentieJaren.ToString(),
                 HttpOnly = true,
                 Path = "/",
                 Expires = DateTime.Now.AddDays(366)
@@ -197,48 +203,48 @@ namespace SlimmeMeterPortaal.Controllers
             Response.Cookies.Add(inputyearsCookie);
 
             string title = "Maandrapportage";
-            string lvl = SMP_report.Message.Info;
+            string lvl = SmpViewModel.MessageViewModel.Info;
             string msg = "Gebruik de knoppen links, of scroll naar beneden om de gevraagde rapportages te zien";
             string result;
 
-            if (SMP_report.Devicelijst.Count == 0)
+            if (SmpViewModel.VerbruiksMeters.Count == 0)
             {
-                Task<string> longRunningTask1 = SMP_report.GetMeters();
-                result = await longRunningTask1;
-                longRunningTask1.Dispose();
+                Task<string> maakVerbruiksMeterLijst = SmpViewModel.MaakVerbruiksMeterLijst();
+                result = await maakVerbruiksMeterLijst;
+                maakVerbruiksMeterLijst.Dispose();
                 if (result != "Ok")
                 {
-                    lvl = SMP_report.Message.Error;
-                    msg = "AWAIT GETMETERS failed code = " + result;
+                    lvl = SmpViewModel.MessageViewModel.Error;
+                    msg = "Het maken van een lijst van verbruiksmeters ging fout, returncode = " + result.ToString();
                 }
             }
-            string val = SMP_report.DatumValidatie(1);
+            string val = SmpViewModel.DatumValidatie(1);
             if (val != "Ok")
             {
-                lvl = SMP_report.Message.Warning;
+                lvl = SmpViewModel.MessageViewModel.Warning;
                 msg = val;
-                SMP_report.Message.Fill(title, lvl, msg);
-                return View("IndexM", SMP_report);
+                SmpViewModel.MessageViewModel.Fill(title, lvl, msg);
+                return View("IndexMaand", SmpViewModel);
             }
 
-            Task<string> longRunningTask2 = SMP_report.GetMonthUsage();
+            Task<string> longRunningTask2 = SmpViewModel.GetMonthUsage();
             result = await longRunningTask2;
             longRunningTask2.Dispose();
             if (result != "Ok")
             {
-                lvl = SMP_report.Message.Error;
+                lvl = SmpViewModel.MessageViewModel.Error;
                 msg = "AWAIT GETMONTHUSAGE failed rc = " + result;
             }
 
-            SMP_report.GetMaandCijfers();
+            SmpViewModel.GetMaandCijfers();
             
-            SMP_report.GetMonthStats();
+            SmpViewModel.GetMonthStats();
 
-            SMP_report.Message.Fill(title, lvl, msg);
+            SmpViewModel.MessageViewModel.Fill(title, lvl, msg);
 
-            SMP_report.MaandRapport();
+            SmpViewModel.MaandRapport();
 
-            return View("MaandRapport", SMP_report);
+            return View("MaandRapport", SmpViewModel);
         }
     }
 }
