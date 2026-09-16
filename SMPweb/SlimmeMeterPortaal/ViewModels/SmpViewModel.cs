@@ -71,6 +71,7 @@ namespace SlimmeMeterPortaal.ViewModels
             // Fetch API key from dataset to prevent inclusion in coding
             get
             {
+                string apikey = "n/a";
                 RunspaceConfiguration runspaceConfiguration = RunspaceConfiguration.Create();
 
                 Runspace runspace = RunspaceFactory.CreateRunspace(runspaceConfiguration);
@@ -89,11 +90,38 @@ namespace SlimmeMeterPortaal.ViewModels
                 // Execute PowerShell script
                 Collection<PSObject> resultobj = pipeline.Invoke();
 
-                string json = resultobj[0].ToString();
-                string apikey = JObject.Parse(json)["ADHC_SMPapikey"].ToString();   
+                string rawOutput = resultobj[0].ToString();
 
+                // Haal alleen de JSON-extract (wat tussen { en } staat)
+                int jsonStart = rawOutput.IndexOf('{');
+                int jsonEnd = rawOutput.LastIndexOf('}');
+
+                if (jsonStart >= 0 && jsonEnd > jsonStart)
+                {
+                    string json = rawOutput.Substring(jsonStart, jsonEnd - jsonStart + 1);
+                    apikey = JObject.Parse(json)["ADHC_SMPapikey"].ToString(); // Nu zonder storende output
+                }
+                else
+                {
+                    this.MessageViewModel.Tekst = "Powershell script INITVAR heeft geen JSON teruggegeven"; 
+                    this.MessageViewModel.Level = this.MessageViewModel.Error;
+                }
+
+                // If the returned string is not purely JSON, report this
+                if ((jsonStart > 0) || (jsonEnd < (rawOutput.Length - 1)))
+                {
+                    {
+                        string msg = "Fout in JSON string aangetroffen : < " + rawOutput + " >";
+                        this.MessageViewModel.Tekst = msg;
+                        this.MessageViewModel.Level = this.MessageViewModel.Warning;
+                    }
+
+                }
+                
+                runspace.Dispose();
+                
                 return (apikey);
-
+                               
             }
         }
 
