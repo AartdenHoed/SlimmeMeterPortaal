@@ -17,14 +17,17 @@ namespace SlimmeMeterPortaal.ViewModels
         public void Fill(string title, string lvl, string msg)
         {
             this.Title = title;
+            // first message "wins"
             if (this.Level == "O")
             {
                 this.Level = lvl;
-                this.Tekst = msg;
-
+                if ((this.Level == "W") || (this.Level == "E")) {
+                    this.Tekst = this.Title + " *** " + msg;
+                }
+                else {
+                    this.Tekst = msg;
+                }
             }
-
-
         }
     }
        

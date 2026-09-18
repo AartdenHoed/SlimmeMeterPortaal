@@ -147,7 +147,7 @@ namespace SlimmeMeterPortaal.ViewModels
             }
             catch (Exception e)
             {
-                this.MessageViewModel.Fill("Error", this.MessageViewModel.Error, e.Message);               
+                this.MessageViewModel.Fill("Error", this.MessageViewModel.Error, "InitProgressBar: " + e.Message);               
 
             }        
            
