@@ -11,14 +11,18 @@ namespace SlimmeMeterPortaal.ViewModels
         public string Warning { get { return "W"; } }
         public string Info { get { return "I"; } }
         public string Tekst { get; set; }
-        public string Level { get; set; }
+        public string Level { get; set; } = "O";
         public string Title { get; set; }
 
         public void Fill(string title, string lvl, string msg)
         {
-            this.Tekst = msg;
-            this.Level = lvl;
             this.Title = title;
+            if (this.Level == "O")
+            {
+                this.Level = lvl;
+                this.Tekst = msg;
+
+            }
 
 
         }

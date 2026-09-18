@@ -103,17 +103,15 @@ namespace SlimmeMeterPortaal.ViewModels
                 }
                 else
                 {
-                    this.MessageViewModel.Tekst = "Powershell script INITVAR heeft geen JSON teruggegeven"; 
-                    this.MessageViewModel.Level = this.MessageViewModel.Error;
+                    this.MessageViewModel.Fill("Error", this.MessageViewModel.Error, "Powershell script INITVAR heeft geen JSON teruggegeven");                    
                 }
 
                 // If the returned string is not purely JSON, report this
                 if ((jsonStart > 0) || (jsonEnd < (rawOutput.Length - 1)))
                 {
                     {
-                        string msg = "Fout in JSON string aangetroffen : < " + rawOutput + " >";
-                        this.MessageViewModel.Tekst = msg;
-                        this.MessageViewModel.Level = this.MessageViewModel.Warning;
+                        this.MessageViewModel.Fill("Warning", this.MessageViewModel.Warning, "Fout in JSON string aangetroffen : < " + rawOutput + " >");
+                        
                     }
 
                 }
@@ -149,8 +147,7 @@ namespace SlimmeMeterPortaal.ViewModels
             }
             catch (Exception e)
             {
-                this.MessageViewModel.Tekst = e.Message;
-                this.MessageViewModel.Level = this.MessageViewModel.Error;
+                this.MessageViewModel.Fill("Error", this.MessageViewModel.Error, e.Message);               
 
             }        
            
